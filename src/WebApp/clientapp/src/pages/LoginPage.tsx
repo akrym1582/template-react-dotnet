@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LoginPage() {
-  const { login, testLogin } = useAuth()
+  const { login, testLogin, resetPasswordByCredentials } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [testLoginUsers, setTestLoginUsers] = useState<TestLoginUserDto[]>([])
@@ -68,6 +68,25 @@ export default function LoginPage() {
     }
   }
 
+  const handleResetPassword = async () => {
+    if (isSubmitting) return
+
+    setIsSubmitting(true)
+    try {
+      const result = await alert.withLoading(() => resetPasswordByCredentials(email, password))
+      if (result && !result.success) {
+        await alert.error(result.message ?? 'パスワードの初期化に失敗しました。')
+        return
+      }
+
+      await alert.success(
+        `パスワードを「${result?.data?.initialPassword ?? ''}」に初期化しました。再ログイン後に変更してください。`,
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center">
       <Card className="w-full max-w-md">
@@ -105,6 +124,18 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'ログイン中...' : 'ログイン'}
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isSubmitting}
+              onClick={() => void handleResetPassword()}
+            >
+              現在のパスワードで初期化
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              ログイン画面からの初期化では、メールアドレスと現在のパスワードの入力が必要です。
+            </p>
           </form>
 
           {testLoginUsers.length > 0 && (

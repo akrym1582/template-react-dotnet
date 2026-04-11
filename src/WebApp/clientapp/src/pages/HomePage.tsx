@@ -1,7 +1,10 @@
 import { useAuth } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
-import { Button } from '@/components/ui/button'
+import { Link } from 'react-router-dom'
+import { canManageUsers, formatRole } from '@/lib/user'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 export default function HomePage() {
   const { user, logout } = useAuth()
@@ -30,12 +33,22 @@ export default function HomePage() {
               <span className="font-medium">メール:</span> {user?.email}
             </p>
             <p>
-              <span className="font-medium">ロール:</span> {user?.roles.join(', ')}
+              <span className="font-medium">ロール:</span> {user?.roles.map(formatRole).join(', ')}
             </p>
           </div>
-          <Button variant="destructive" onClick={handleLogout}>
-            ログアウト
-          </Button>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link to={`/users/${user?.userId}`} className={cn(buttonVariants({ variant: 'outline' }))}>
+              マイユーザー詳細
+            </Link>
+            {user && canManageUsers(user.roles) && (
+              <Link to="/users" className={cn(buttonVariants({ variant: 'outline' }))}>
+                ユーザー一覧
+              </Link>
+            )}
+            <Button variant="destructive" onClick={handleLogout}>
+              ログアウト
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

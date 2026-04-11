@@ -10,30 +10,30 @@ public class JsonHelperTests
         var json = "[\"admin\",\"user\"]";
         var roles = JsonHelper.DeserializeRoles(json);
         Assert.Equal(2, roles.Count);
-        Assert.Contains("admin", roles);
-        Assert.Contains("user", roles);
+        Assert.Contains("privileged", roles);
+        Assert.Contains("general", roles);
     }
 
     [Fact]
-    public void DeserializeRoles_WithNull_ReturnsEmptyList()
+    public void DeserializeRoles_WithNull_ReturnsGeneralRole()
     {
         var roles = JsonHelper.DeserializeRoles(null);
-        Assert.Empty(roles);
+        Assert.Equal(["general"], roles);
     }
 
     [Fact]
-    public void DeserializeRoles_WithEmptyString_ReturnsEmptyList()
+    public void DeserializeRoles_WithEmptyString_ReturnsGeneralRole()
     {
         var roles = JsonHelper.DeserializeRoles("");
-        Assert.Empty(roles);
+        Assert.Equal(["general"], roles);
     }
 
     [Fact]
     public void SerializeRoles_ReturnsJsonArray()
     {
-        var roles = new[] { "admin", "editor" };
+        var roles = new[] { "admin", "manager" };
         var json = JsonHelper.SerializeRoles(roles);
-        Assert.Equal("[\"admin\",\"editor\"]", json);
+        Assert.Equal("[\"privileged\",\"manager\"]", json);
     }
 
     [Fact]

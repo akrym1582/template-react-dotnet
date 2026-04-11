@@ -9,8 +9,11 @@ const mockUser = {
   userId: 'user-1',
   email: 'test@example.com',
   displayName: 'テストユーザー',
+  storeCode: '001',
+  storeName: '本店',
   roles: ['User'],
   isActive: true,
+  mustChangePassword: false,
 }
 
 const successResponse = { success: true, data: mockUser }
@@ -203,6 +206,41 @@ describe('useAuth', () => {
       })
 
       expect(result.current.user).toBeUndefined()
+    })
+  })
+
+  describe('changePassword', () => {
+    it('POST /api/auth/change-password にリクエストを送信する', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue(successResponse),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue(successResponse),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue(successResponse),
+        })
+
+      const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      await act(async () => {
+        await result.current.changePassword('NewPass@123')
+      })
+
+      const changePasswordCall = mockFetch.mock.calls.find(
+        ([url]) => typeof url === 'string' && url.includes('change-password'),
+      )
+      expect(changePasswordCall).toBeDefined()
+      expect(changePasswordCall![1]).toMatchObject({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword: 'NewPass@123' }),
+      })
     })
   })
 })
