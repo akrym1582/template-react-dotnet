@@ -35,7 +35,10 @@ export const alert = {
     return result.isConfirmed
   },
 
-  async withLoading<T>(action: () => Promise<T>, options: WithLoadingOptions = {}) {
+  async withLoading<T>(
+    action: () => Promise<T>,
+    options: WithLoadingOptions = {},
+  ): Promise<T | undefined> {
     const {
       errorMessage,
       loadingMessage = 'しばらくお待ちください。',
