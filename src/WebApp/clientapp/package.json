@@ -1,0 +1,38 @@
+{
+  "name": "clientapp",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint src/",
+    "format": "oxlint --fix src/",
+    "preview": "vite preview",
+    "generate-api": "openapi2aspida -i http://localhost:5000/swagger/v1/swagger.json -o src/api"
+  },
+  "dependencies": {
+    "@aspida/fetch": "^1.14.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.8.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.14.0",
+    "sweetalert2": "^11.26.24",
+    "swr": "^2.4.1",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "openapi2aspida": "^0.24.0",
+    "oxlint": "^1.59.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.4"
+  }
+}
