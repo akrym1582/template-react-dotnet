@@ -18,24 +18,36 @@ import { alert } from '@/lib/alert'
 
 const mockUseAuth = vi.mocked(useAuth)
 const mockAlert = vi.mocked(alert)
+const mockFetch = vi.fn()
+vi.stubGlobal('fetch', mockFetch)
 
 const mockLogin = vi.fn()
+const mockTestLogin = vi.fn()
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockFetch.mockResolvedValue({
+    ok: true,
+    json: vi.fn().mockResolvedValue({
+      success: true,
+      data: [{ userId: 'test-user', roles: ['user'] }],
+    }),
+  } as never)
   mockUseAuth.mockReturnValue({
     user: undefined,
     isLoading: false,
     isError: false,
     login: mockLogin,
+    testLogin: mockTestLogin,
     entraLogin: vi.fn(),
     logout: vi.fn(),
   })
 })
 
 describe('LoginPage', () => {
-  it('ログインフォームを表示する', () => {
+  it('ログインフォームを表示する', async () => {
     render(<LoginPage />)
+    await screen.findByRole('button', { name: /test-user/i })
 
     expect(screen.getByRole('heading', { name: 'ログイン' })).toBeInTheDocument()
     expect(screen.getByLabelText('メールアドレス')).toBeInTheDocument()
@@ -69,6 +81,27 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(mockAlert.withLoading).toHaveBeenCalled()
       expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123')
+    })
+  })
+
+  it('テストログインユーザーを表示する', async () => {
+    render(<LoginPage />)
+
+    expect(await screen.findByRole('button', { name: /test-user/i })).toBeInTheDocument()
+    expect(screen.getByText('user')).toBeInTheDocument()
+  })
+
+  it('テストログインボタン押下時に testLogin を呼び出す', async () => {
+    mockAlert.withLoading.mockImplementation(async (action) => action())
+    mockTestLogin.mockResolvedValue({ success: true })
+
+    render(<LoginPage />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /test-user/i }))
+
+    await waitFor(() => {
+      expect(mockAlert.withLoading).toHaveBeenCalled()
+      expect(mockTestLogin).toHaveBeenCalledWith('test-user')
     })
   })
 
@@ -108,8 +141,9 @@ describe('LoginPage', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'ログイン' })).not.toBeDisabled())
   })
 
-  it('Azure Entra ID ボタンが表示される', () => {
+  it('Azure Entra ID ボタンが表示される', async () => {
     render(<LoginPage />)
+    await screen.findByRole('button', { name: /test-user/i })
     expect(screen.getByRole('button', { name: 'Azure Entra ID でログイン' })).toBeInTheDocument()
   })
 })

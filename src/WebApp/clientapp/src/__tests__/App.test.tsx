@@ -24,6 +24,7 @@ describe('App', () => {
       isLoading: true,
       isError: false,
       login: vi.fn(),
+      testLogin: vi.fn(),
       entraLogin: vi.fn(),
       logout: vi.fn(),
     })
@@ -41,6 +42,7 @@ describe('App', () => {
       isLoading: false,
       isError: false,
       login: vi.fn(),
+      testLogin: vi.fn(),
       entraLogin: vi.fn(),
       logout: vi.fn(),
     })
@@ -63,6 +65,7 @@ describe('App', () => {
       isLoading: false,
       isError: false,
       login: vi.fn(),
+      testLogin: vi.fn(),
       entraLogin: vi.fn(),
       logout: vi.fn(),
     })

@@ -93,6 +93,12 @@ npm run lint
 2. 認証成功で Cookie セッション発行
 3. 以降 Cookie で認証
 
+### 開発環境向けテストログイン
+- `src/WebApp/appsettings.json` の `TestLogin:Users` にユーザーIDとロールを複数定義できます
+- 開発環境では `GET /api/auth/test-users` でテストユーザー一覧を取得できます
+- 開発環境では `POST /api/auth/test-login` に `userId` を送るとパスワードなしで Cookie セッションを発行できます
+- ログイン画面には設定済みのテストユーザーがボタン表示されます
+
 ### Azure Entra ID 認証
 1. クライアントで Entra ID から JWT トークン取得
 2. `POST /api/auth/entra-login` で JWT を送信

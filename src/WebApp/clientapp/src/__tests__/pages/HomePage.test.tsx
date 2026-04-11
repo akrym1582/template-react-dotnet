@@ -35,6 +35,7 @@ beforeEach(() => {
     isLoading: false,
     isError: false,
     login: vi.fn(),
+    testLogin: vi.fn(),
     entraLogin: vi.fn(),
     logout: mockLogout,
   })
