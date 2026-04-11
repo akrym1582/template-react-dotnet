@@ -1,13 +1,11 @@
-import useSWR from 'swr'
+import useAspidaSWR from '@aspida/swr'
+import { createJsonGetApi } from '@/lib/aspida'
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url, { credentials: 'same-origin' })
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`)
-  }
-  return res.json()
-}
+const DISABLED_PATH_PLACEHOLDER = '/__useApi_disabled__'
 
 export function useApi<T>(path: string | null) {
-  return useSWR<T>(path, fetcher)
+  const api = createJsonGetApi<T>(path ?? DISABLED_PATH_PLACEHOLDER)
+  const option = path === null ? { key: null } : undefined
+
+  return useAspidaSWR(api, option)
 }

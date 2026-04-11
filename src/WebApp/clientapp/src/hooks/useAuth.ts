@@ -1,6 +1,6 @@
+import useAspidaSWR from '@aspida/swr'
 import api from '@/api/$api'
-import { aspidaClient } from '@/lib/aspida'
-import useSWR from 'swr'
+import { aspidaClient, createJsonGetApi } from '@/lib/aspida'
 
 export interface UserDto {
   userId: string
@@ -29,18 +29,12 @@ interface ApiResponse<T> {
   message?: string
 }
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url, { credentials: 'same-origin' })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return res.json()
-}
-
 const authApi = api(aspidaClient).auth
+const authMeApi = createJsonGetApi<ApiResponse<UserDto>>(authApi.me.$path())
 
 export function useAuth() {
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<UserDto>>(
-    authApi.me.$path(),
-    fetcher,
+  const { data, error, isLoading, mutate } = useAspidaSWR(
+    authMeApi,
     {
       revalidateOnFocus: false,
       shouldRetryOnError: false,

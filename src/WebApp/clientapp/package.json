@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@aspida/fetch": "^1.14.0",
+    "@aspida/swr": "^1.14.0",
     "@fontsource/noto-sans-jp": "^5.2.9",
     "@tailwindcss/vite": "^4.2.2",
     "class-variance-authority": "^0.7.1",
