@@ -23,6 +23,7 @@
   --color-input: #e5e5e5;
   --color-ring: #0a0a0a;
   --radius: 0.5rem;
+  --font-sans: 'Noto Sans JP', sans-serif;
 }
 
 @layer base {
@@ -30,6 +31,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }
