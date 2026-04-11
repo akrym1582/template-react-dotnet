@@ -2,6 +2,8 @@
 
 React 19 + ASP.NET 10 フルスタックテンプレートプロジェクト
 
+> **ドキュメントメンテナンスルール**: 技術スタック・アーキテクチャ・規約・開発手順を変更した場合は、このファイル (`README.md`) と [`.github/copilot-instructions.md`](.github/copilot-instructions.md) の**両方**を必ず更新してください。
+
 ## プロジェクト構成
 
 ```
