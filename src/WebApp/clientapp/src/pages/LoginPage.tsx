@@ -10,21 +10,12 @@ export default function LoginPage() {
   const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
-
-    try {
-      const result = await login(email, password)
-      if (!result.success) {
-        await alert.error(result.message ?? 'ログインに失敗しました。')
-      }
-    } catch {
-      await alert.error('通信エラーが発生しました。')
-    } finally {
-      setIsSubmitting(false)
+    const result = await alert.withLoading(() => login(email, password))
+    if (result && !result.success) {
+      await alert.error(result.message ?? 'ログインに失敗しました。')
     }
   }
 
@@ -62,8 +53,8 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'ログイン中...' : 'ログイン'}
+            <Button type="submit" className="w-full">
+              ログイン
             </Button>
           </form>
 
