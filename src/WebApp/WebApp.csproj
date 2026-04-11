@@ -12,7 +12,6 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="10.0.5" />
     <PackageReference Include="Microsoft.Identity.Web" Version="3.9.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
   </ItemGroup>
 
   <ItemGroup>
