@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import type { UserDto } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
+import { notifyInitialPassword } from '@/lib/password'
 import { canManageUsers, formatRole, roleOptions } from '@/lib/user'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -76,9 +77,10 @@ export default function UserListPage() {
     }
   }, [selectedStoreCode, stores])
 
-  const filteredUsers = selectedStoreCode
-    ? users.filter((targetUser) => targetUser.storeCode === selectedStoreCode)
-    : []
+  const effectiveSelectedStoreCode = selectedStoreCode || stores[0]?.storeCode || ''
+  const filteredUsers = effectiveSelectedStoreCode
+    ? users.filter((targetUser) => targetUser.storeCode === effectiveSelectedStoreCode)
+    : users
 
   const handleCreate = async (event: FormEvent) => {
     event.preventDefault()
@@ -102,7 +104,11 @@ export default function UserListPage() {
       return
     }
 
-    await alert.success(`ユーザーを追加しました。初期パスワード: ${json.data?.initialPassword ?? ''}`)
+    await notifyInitialPassword(
+      json.data?.initialPassword,
+      'ユーザーを追加しました。初期パスワードをクリップボードにコピーしました。',
+      'ユーザーを追加しました。初期パスワードは設定値 UserManagement:InitialPassword を確認してください。',
+    )
     setCreateEmail('')
     setCreateDisplayName('')
     setCreateStoreCode('')
@@ -128,7 +134,7 @@ export default function UserListPage() {
             <select
               id="storeCode"
               className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs"
-              value={selectedStoreCode}
+              value={effectiveSelectedStoreCode}
               onChange={(event) => setSelectedStoreCode(event.target.value)}
             >
               {stores.map((store) => (

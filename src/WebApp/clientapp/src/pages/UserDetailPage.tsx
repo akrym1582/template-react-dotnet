@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import type { UserDto } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
+import { notifyInitialPassword } from '@/lib/password'
 import { canManageUsers, formatRole, roleOptions } from '@/lib/user'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -98,8 +99,10 @@ export default function UserDetailPage() {
     }
 
     await logout()
-    await alert.success(
-      `パスワードを「${result.data?.initialPassword ?? ''}」に初期化しました。再ログイン後に変更してください。`,
+    await notifyInitialPassword(
+      result.data?.initialPassword,
+      '初期パスワードをクリップボードにコピーしました。再ログイン後に変更してください。',
+      'パスワードを初期化しました。初期パスワードは設定値 UserManagement:InitialPassword を確認してください。',
     )
   }
 

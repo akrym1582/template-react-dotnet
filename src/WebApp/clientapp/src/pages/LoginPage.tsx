@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import type { TestLoginUserDto } from '@/hooks/useAuth'
 import { useAuth } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
+import { notifyInitialPassword } from '@/lib/password'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -79,8 +80,10 @@ export default function LoginPage() {
         return
       }
 
-      await alert.success(
-        `パスワードを「${result?.data?.initialPassword ?? ''}」に初期化しました。再ログイン後に変更してください。`,
+      await notifyInitialPassword(
+        result?.data?.initialPassword,
+        '初期パスワードをクリップボードにコピーしました。再ログイン後に変更してください。',
+        'パスワードを初期化しました。初期パスワードは設定値 UserManagement:InitialPassword を確認してください。',
       )
     } finally {
       setIsSubmitting(false)

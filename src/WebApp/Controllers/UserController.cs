@@ -83,11 +83,11 @@ public class UserController : ControllerBase
         if (!isSelf && !canManageUsers)
             return Forbid();
 
-        if (!canManageUsers && request.Roles is { Count: > 0 })
+        if (!canManageUsers && request.Roles is not null)
             return Forbid();
 
         var existingUser = await _userService.GetByEmailAsync(request.Email);
-        if (existingUser is not null && !string.Equals(existingUser.UserId, userId, StringComparison.Ordinal))
+        if (existingUser is not null && !string.Equals(existingUser.UserId, userId, StringComparison.OrdinalIgnoreCase))
             return BadRequest(new ApiResponseDto(false, "同じメールアドレスのユーザーが存在します。"));
 
         var currentUser = await _userService.GetByIdAsync(userId);

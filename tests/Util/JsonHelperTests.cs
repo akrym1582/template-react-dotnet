@@ -7,11 +7,19 @@ public class JsonHelperTests
     [Fact]
     public void DeserializeRoles_WithValidJson_ReturnsRoles()
     {
-        var json = "[\"admin\",\"user\"]";
+        var json = "[\"privileged\",\"general\"]";
         var roles = JsonHelper.DeserializeRoles(json);
         Assert.Equal(2, roles.Count);
         Assert.Contains("privileged", roles);
         Assert.Contains("general", roles);
+    }
+
+    [Fact]
+    public void DeserializeRoles_WithLegacyJson_NormalizesRoles()
+    {
+        var json = "[\"admin\",\"user\"]";
+        var roles = JsonHelper.DeserializeRoles(json);
+        Assert.Equal(["privileged", "general"], roles);
     }
 
     [Fact]
@@ -31,7 +39,7 @@ public class JsonHelperTests
     [Fact]
     public void SerializeRoles_ReturnsJsonArray()
     {
-        var roles = new[] { "admin", "manager" };
+        var roles = new[] { "privileged", "manager" };
         var json = JsonHelper.SerializeRoles(roles);
         Assert.Equal("[\"privileged\",\"manager\"]", json);
     }
