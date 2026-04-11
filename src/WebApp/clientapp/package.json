@@ -9,7 +9,10 @@
     "lint": "oxlint src/",
     "format": "oxlint --fix src/",
     "preview": "vite preview",
-    "generate-api": "openapi2aspida -i http://localhost:5000/swagger/v1/swagger.json -o src/api"
+    "generate-api": "openapi2aspida -i http://localhost:5000/swagger/v1/swagger.json -o src/api",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@aspida/fetch": "^1.14.0",
@@ -26,13 +29,19 @@
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.4",
+    "jsdom": "^29.0.2",
     "openapi2aspida": "^0.24.0",
     "oxlint": "^1.59.0",
     "typescript": "~6.0.2",
-    "vite": "^8.0.4"
+    "vite": "^8.0.4",
+    "vitest": "^4.1.4"
   }
 }
