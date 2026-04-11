@@ -1,5 +1,11 @@
 import Swal from 'sweetalert2'
 
+interface WithLoadingOptions {
+  errorMessage?: string
+  loadingMessage?: string
+  loadingTitle?: string
+}
+
 export const alert = {
   success(message: string, title = '成功') {
     return Swal.fire({ icon: 'success', title, text: message })
@@ -27,5 +33,41 @@ export const alert = {
       cancelButtonText: 'キャンセル',
     })
     return result.isConfirmed
+  },
+
+  async withLoading<T>(
+    action: () => Promise<T>,
+    options: WithLoadingOptions = {},
+  ): Promise<T | undefined> {
+    const {
+      errorMessage,
+      loadingMessage = 'しばらくお待ちください。',
+      loadingTitle = '処理中',
+    } = options
+
+    void Swal.fire({
+      title: loadingTitle,
+      text: loadingMessage,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading()
+      },
+    })
+
+    try {
+      return await action()
+    } catch (error) {
+      const message =
+        errorMessage ??
+        (error instanceof Error && error.message
+          ? error.message
+          : '通信エラーが発生しました。')
+      await alert.error(message)
+      return undefined
+    } finally {
+      Swal.close()
+    }
   },
 }

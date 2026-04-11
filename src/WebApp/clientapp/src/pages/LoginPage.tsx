@@ -14,15 +14,14 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
+    if (isSubmitting) return
 
+    setIsSubmitting(true)
     try {
-      const result = await login(email, password)
-      if (!result.success) {
+      const result = await alert.withLoading(() => login(email, password))
+      if (result && !result.success) {
         await alert.error(result.message ?? 'ログインに失敗しました。')
       }
-    } catch {
-      await alert.error('通信エラーが発生しました。')
     } finally {
       setIsSubmitting(false)
     }
