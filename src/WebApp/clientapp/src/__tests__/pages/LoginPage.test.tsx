@@ -10,6 +10,7 @@ vi.mock('@/lib/alert', () => ({
   alert: {
     withLoading: vi.fn(),
     error: vi.fn(),
+    success: vi.fn(),
   },
 }))
 
@@ -41,6 +42,9 @@ beforeEach(() => {
     testLogin: mockTestLogin,
     entraLogin: vi.fn(),
     logout: vi.fn(),
+    changePassword: vi.fn(),
+    resetPassword: vi.fn(),
+    resetPasswordByCredentials: vi.fn(),
   })
 })
 
@@ -145,5 +149,11 @@ describe('LoginPage', () => {
     render(<LoginPage />)
     await screen.findByRole('button', { name: /test-user/i })
     expect(screen.getByRole('button', { name: 'Azure Entra ID でログイン' })).toBeInTheDocument()
+  })
+
+  it('パスワード初期化ボタンが表示される', async () => {
+    render(<LoginPage />)
+    await screen.findByRole('button', { name: /test-user/i })
+    expect(screen.getByRole('button', { name: '現在のパスワードで初期化' })).toBeInTheDocument()
   })
 })
