@@ -1,3 +1,5 @@
+import api from '@/api/$api'
+import { aspidaClient } from '@/lib/aspida'
 import useSWR from 'swr'
 
 export interface UserDto {
@@ -20,9 +22,11 @@ const fetcher = async (url: string) => {
   return res.json()
 }
 
+const authApi = api(aspidaClient).auth
+
 export function useAuth() {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<UserDto>>(
-    '/api/auth/me',
+    authApi.me.$path(),
     fetcher,
     {
       revalidateOnFocus: false,
@@ -31,7 +35,7 @@ export function useAuth() {
   )
 
   const login = async (email: string, password: string) => {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(authApi.login.$path(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
@@ -45,7 +49,7 @@ export function useAuth() {
   }
 
   const entraLogin = async (idToken: string) => {
-    const res = await fetch('/api/auth/entra-login', {
+    const res = await fetch(authApi.entra_login.$path(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
@@ -59,7 +63,7 @@ export function useAuth() {
   }
 
   const logout = async () => {
-    await fetch('/api/auth/logout', {
+    await fetch(authApi.logout.$path(), {
       method: 'POST',
       credentials: 'same-origin',
     })
