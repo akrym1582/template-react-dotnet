@@ -62,8 +62,6 @@ builder.Services.AddAuthorization();
 // --- Controllers & OpenAPI ---
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 // --- SPA static files ---
 builder.Services.AddSpaStaticFiles(config =>
@@ -77,8 +75,6 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
 }
 
 app.UseStaticFiles();
