@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Shared.Dto;
 using Shared.Services;
+using Shared.Util;
+using WebApp.Options;
 
 namespace WebApp.Controllers;
 
@@ -13,11 +16,18 @@ namespace WebApp.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IWebHostEnvironment _environment;
+    private readonly TestLoginOptions _testLoginOptions;
 
-    public AuthController(IUserService userService)
+    public AuthController(
+        IServiceProvider serviceProvider,
+        IOptions<TestLoginOptions> testLoginOptions,
+        IWebHostEnvironment environment)
     {
-        _userService = userService;
+        _serviceProvider = serviceProvider;
+        _testLoginOptions = testLoginOptions.Value;
+        _environment = environment;
     }
 
     /// <summary>
@@ -26,10 +36,39 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> Login([FromBody] LoginRequestDto request)
     {
-        var user = await _userService.ValidateCredentialsAsync(request.Email, request.Password);
+        var user = await GetUserService().ValidateCredentialsAsync(request.Email, request.Password);
         if (user is null)
             return Unauthorized(new ApiResponseDto(false, "メールアドレスまたはパスワードが正しくありません。"));
 
+        await SignInAsync(user);
+        return Ok(new ApiResponseDto<UserDto>(true, user));
+    }
+
+    [HttpGet("test-users")]
+    public ActionResult<ApiResponseDto<IReadOnlyList<TestLoginUserDto>>> GetTestUsers()
+    {
+        if (!_environment.IsDevelopment())
+            return Ok(new ApiResponseDto<IReadOnlyList<TestLoginUserDto>>(true, []));
+
+        var users = _testLoginOptions.Users
+            .Where(user => !string.IsNullOrWhiteSpace(user.UserId))
+            .Select(user => new TestLoginUserDto(user.UserId.Trim(), NormalizeRoles(user.Roles)))
+            .ToList();
+
+        return Ok(new ApiResponseDto<IReadOnlyList<TestLoginUserDto>>(true, users));
+    }
+
+    [HttpPost("test-login")]
+    public async Task<ActionResult<ApiResponseDto<UserDto>>> TestLogin([FromBody] TestLoginRequestDto request)
+    {
+        if (!_environment.IsDevelopment())
+            return NotFound(new ApiResponseDto(false, "テストログインは開発環境でのみ利用できます。"));
+
+        var configuredUser = FindTestLoginUser(request.UserId);
+        if (configuredUser is null)
+            return Unauthorized(new ApiResponseDto(false, "テストログインユーザーが見つかりません。"));
+
+        var user = ToTestLoginUserDto(configuredUser);
         await SignInAsync(user);
         return Ok(new ApiResponseDto<UserDto>(true, user));
     }
@@ -54,7 +93,7 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(oid) || string.IsNullOrEmpty(email))
             return BadRequest(new ApiResponseDto(false, "トークンに必要な情報が含まれていません。"));
 
-        var user = await _userService.GetOrCreateEntraUserAsync(oid, email, name ?? email);
+        var user = await GetUserService().GetOrCreateEntraUserAsync(oid, email, name ?? email);
         await SignInAsync(user);
 
         return Ok(new ApiResponseDto<UserDto>(true, user));
@@ -75,7 +114,12 @@ public class AuthController : ControllerBase
         if (userId is null)
             return Unauthorized(new ApiResponseDto(false));
 
-        var user = await _userService.GetByIdAsync(userId);
+        var configuredUser = FindTestLoginUser(userId);
+        if (configuredUser is not null)
+            return Ok(new ApiResponseDto<UserDto>(true, ToTestLoginUserDto(configuredUser)));
+
+        var user = await GetUserService().GetByIdAsync(userId);
+
         if (user is null)
             return Unauthorized(new ApiResponseDto(false));
 
@@ -108,4 +152,33 @@ public class AuthController : ControllerBase
                 ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
             });
     }
+
+    private TestLoginUserOption? FindTestLoginUser(string userId) =>
+        _testLoginOptions.Users.FirstOrDefault(
+            user => string.Equals(user.UserId?.Trim(), userId.Trim(), StringComparison.Ordinal));
+
+    private static UserDto ToTestLoginUserDto(TestLoginUserOption user)
+    {
+        var userId = user.UserId.Trim();
+        return new UserDto(
+            UserId: userId,
+            Email: $"{userId}@test.local",
+            DisplayName: userId,
+            Roles: NormalizeRoles(user.Roles),
+            IsActive: true);
+    }
+
+    private static IReadOnlyList<string> NormalizeRoles(IEnumerable<string>? roles)
+    {
+        var normalizedRoles = roles?
+            .Where(role => !string.IsNullOrWhiteSpace(role))
+            .Select(role => role.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return normalizedRoles is { Count: > 0 } ? normalizedRoles : [Constants.Roles.User];
+    }
+
+    private IUserService GetUserService() =>
+        _serviceProvider.GetRequiredService<IUserService>();
 }

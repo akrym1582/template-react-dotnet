@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\src\Shared\Shared.csproj" />
+    <ProjectReference Include="..\src\WebApp\WebApp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

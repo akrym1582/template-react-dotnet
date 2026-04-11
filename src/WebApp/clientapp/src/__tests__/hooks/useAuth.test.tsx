@@ -144,6 +144,48 @@ describe('useAuth', () => {
     })
   })
 
+  describe('testLogin', () => {
+    it('POST /api/auth/test-login にリクエストを送信する', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue(failureResponse),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            success: true,
+            data: [{ userId: 'test-user', roles: ['user'] }],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue(successResponse),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue(successResponse),
+        })
+
+      const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      await act(async () => {
+        await result.current.testLogin('test-user')
+      })
+
+      const testLoginCall = mockFetch.mock.calls.find(
+        ([url]) => typeof url === 'string' && url.includes('test-login'),
+      )
+      expect(testLoginCall).toBeDefined()
+      expect(testLoginCall![1]).toMatchObject({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'test-user' }),
+      })
+    })
+  })
+
   describe('logout', () => {
     it('ログアウト後に user が undefined になる', async () => {
       mockFetch

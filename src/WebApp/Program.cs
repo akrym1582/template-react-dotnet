@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Repository;
 using Shared.Services;
+using WebApp.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,7 @@ builder.Services.AddSingleton(_ =>
 // --- Repositories & Services ---
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.Configure<TestLoginOptions>(builder.Configuration.GetSection("TestLogin"));
 
 // --- Authentication: Cookie + JWT Bearer (Entra ID) ---
 builder.Services

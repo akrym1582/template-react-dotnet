@@ -10,6 +10,11 @@ export interface UserDto {
   isActive: boolean
 }
 
+export interface TestLoginUserDto {
+  userId: string
+  roles: string[]
+}
+
 interface ApiResponse<T> {
   success: boolean
   data?: T
@@ -48,6 +53,20 @@ export function useAuth() {
     return json
   }
 
+  const testLogin = async (userId: string) => {
+    const res = await fetch('/api/auth/test-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ userId }),
+    })
+    const json: ApiResponse<UserDto> = await res.json()
+    if (json.success) {
+      await mutate()
+    }
+    return json
+  }
+
   const entraLogin = async (idToken: string) => {
     const res = await fetch(authApi.entra_login.$path(), {
       method: 'POST',
@@ -75,6 +94,7 @@ export function useAuth() {
     isLoading,
     isError: !!error,
     login,
+    testLogin,
     entraLogin,
     logout,
   }

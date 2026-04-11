@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
+import type { TestLoginUserDto } from '@/hooks/useAuth'
 import { useAuth } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
 import { Button } from '@/components/ui/button'
@@ -7,10 +8,36 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LoginPage() {
-  const { login } = useAuth()
+  const { login, testLogin } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [testLoginUsers, setTestLoginUsers] = useState<TestLoginUserDto[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadTestLoginUsers = async () => {
+      const res = await fetch('/api/auth/test-users', {
+        credentials: 'same-origin',
+      })
+
+      if (!res.ok) {
+        return
+      }
+
+      const json: { success: boolean; data?: TestLoginUserDto[] } = await res.json()
+      if (isMounted && json.success) {
+        setTestLoginUsers(json.data ?? [])
+      }
+    }
+
+    void loadTestLoginUsers()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -21,6 +48,20 @@ export default function LoginPage() {
       const result = await alert.withLoading(() => login(email, password))
       if (result && !result.success) {
         await alert.error(result.message ?? 'ログインに失敗しました。')
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleTestLogin = async (userId: string) => {
+    if (isSubmitting) return
+
+    setIsSubmitting(true)
+    try {
+      const result = await alert.withLoading(() => testLogin(userId))
+      if (result && !result.success) {
+        await alert.error(result.message ?? 'テストログインに失敗しました。')
       }
     } finally {
       setIsSubmitting(false)
@@ -65,6 +106,34 @@ export default function LoginPage() {
               {isSubmitting ? 'ログイン中...' : 'ログイン'}
             </Button>
           </form>
+
+          {testLoginUsers.length > 0 && (
+            <div className="mt-6 space-y-3">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">テストログイン</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {testLoginUsers.map((user) => (
+                  <Button
+                    key={user.userId}
+                    type="button"
+                    variant="secondary"
+                    className="w-full justify-between"
+                    disabled={isSubmitting}
+                    onClick={() => void handleTestLogin(user.userId)}
+                  >
+                    <span>{user.userId}</span>
+                    <span className="text-xs text-muted-foreground">{user.roles.join(', ')}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mt-4">
             <div className="relative">
