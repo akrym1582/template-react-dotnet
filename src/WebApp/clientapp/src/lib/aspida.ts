@@ -18,7 +18,7 @@ export const createJsonGetApi = <T>(path: string): JsonGetApi<T> => {
     $get: async () => {
       const res = await fetch(path, { credentials: 'same-origin' })
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`)
+        throw new Error(`Failed to fetch ${path}: HTTP ${res.status} ${res.statusText}`)
       }
       return (await res.json()) as T
     },
