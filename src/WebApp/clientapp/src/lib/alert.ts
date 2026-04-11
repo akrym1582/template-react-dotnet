@@ -56,7 +56,6 @@ export const alert = {
     try {
       return await action()
     } catch (error) {
-      Swal.close()
       const message =
         errorMessage ??
         (error instanceof Error && error.message
