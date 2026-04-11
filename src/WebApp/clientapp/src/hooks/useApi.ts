@@ -1,13 +1,6 @@
-import useSWR from 'swr'
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url, { credentials: 'same-origin' })
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`)
-  }
-  return res.json()
-}
+import useAspidaSWR from '@aspida/swr'
+import { createJsonGetApi } from '@/lib/aspida'
 
 export function useApi<T>(path: string | null) {
-  return useSWR<T>(path, fetcher)
+  return useAspidaSWR(createJsonGetApi<T>(path ?? ''), { enabled: path !== null })
 }

@@ -19,6 +19,18 @@ const mockUser = {
 const successResponse = { success: true, data: mockUser }
 const failureResponse = { success: false, message: 'メールアドレスまたはパスワードが違います。' }
 
+const createJsonResponse = <T,>(data: T, init?: { ok?: boolean; status?: number; statusText?: string }) => ({
+  ok: init?.ok ?? true,
+  status: init?.status ?? 200,
+  statusText: init?.statusText ?? 'OK',
+  headers: new Headers({ 'content-type': 'application/json' }),
+  json: vi.fn().mockResolvedValue(data),
+  text: vi.fn(),
+  arrayBuffer: vi.fn(),
+  blob: vi.fn(),
+  formData: vi.fn(),
+})
+
 // SWR キャッシュをテストごとに分離するラッパー
 const createWrapper = () => {
   return ({ children }: { children: React.ReactNode }) => (
@@ -33,23 +45,21 @@ afterEach(() => {
 describe('useAuth', () => {
   describe('初期ロード', () => {
     it('認証済みの場合 user を返す', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: vi.fn().mockResolvedValue(successResponse),
-      })
+      mockFetch.mockResolvedValueOnce(createJsonResponse(successResponse))
 
       const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
 
       await waitFor(() => expect(result.current.isLoading).toBe(false))
       expect(result.current.user).toEqual(mockUser)
       expect(result.current.isError).toBe(false)
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/auth/me',
+        expect.objectContaining({ credentials: 'same-origin' }),
+      )
     })
 
     it('未認証の場合 user が undefined', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: vi.fn().mockResolvedValue(failureResponse),
-      })
+      mockFetch.mockResolvedValueOnce(createJsonResponse(failureResponse))
 
       const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
 
@@ -58,7 +68,9 @@ describe('useAuth', () => {
     })
 
     it('フェッチエラー時に isError が true', async () => {
-      mockFetch.mockResolvedValueOnce({ ok: false, status: 401 })
+      mockFetch.mockResolvedValueOnce(
+        createJsonResponse(undefined, { ok: false, status: 401, statusText: 'Unauthorized' }),
+      )
 
       const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
 
@@ -71,18 +83,9 @@ describe('useAuth', () => {
   describe('login', () => {
     it('ログイン成功時に user が更新される', async () => {
       mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(failureResponse),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(successResponse),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(successResponse),
-        })
+        .mockResolvedValueOnce(createJsonResponse(failureResponse))
+        .mockResolvedValueOnce(createJsonResponse(successResponse))
+        .mockResolvedValueOnce(createJsonResponse(successResponse))
 
       const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
@@ -97,14 +100,8 @@ describe('useAuth', () => {
 
     it('ログイン失敗時に失敗レスポンスを返す', async () => {
       mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(failureResponse),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(failureResponse),
-        })
+        .mockResolvedValueOnce(createJsonResponse(failureResponse))
+        .mockResolvedValueOnce(createJsonResponse(failureResponse))
 
       const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
@@ -120,14 +117,8 @@ describe('useAuth', () => {
 
     it('POST /api/auth/login にリクエストを送信する', async () => {
       mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(failureResponse),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(failureResponse),
-        })
+        .mockResolvedValueOnce(createJsonResponse(failureResponse))
+        .mockResolvedValueOnce(createJsonResponse(failureResponse))
 
       const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
@@ -143,6 +134,7 @@ describe('useAuth', () => {
       expect(loginCall![1]).toMatchObject({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
       })
     })
   })
@@ -150,25 +142,15 @@ describe('useAuth', () => {
   describe('testLogin', () => {
     it('POST /api/auth/test-login にリクエストを送信する', async () => {
       mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(failureResponse),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue({
+        .mockResolvedValueOnce(createJsonResponse(failureResponse))
+        .mockResolvedValueOnce(
+          createJsonResponse({
             success: true,
             data: [{ userId: 'test-user', roles: ['user'] }],
           }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(successResponse),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(successResponse),
-        })
+        )
+        .mockResolvedValueOnce(createJsonResponse(successResponse))
+        .mockResolvedValueOnce(createJsonResponse(successResponse))
 
       const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
@@ -184,6 +166,7 @@ describe('useAuth', () => {
       expect(testLoginCall![1]).toMatchObject({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ userId: 'test-user' }),
       })
     })
@@ -192,11 +175,8 @@ describe('useAuth', () => {
   describe('logout', () => {
     it('ログアウト後に user が undefined になる', async () => {
       mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(successResponse),
-        })
-        .mockResolvedValueOnce({ ok: true, json: vi.fn() })
+        .mockResolvedValueOnce(createJsonResponse(successResponse))
+        .mockResolvedValueOnce(createJsonResponse(undefined))
 
       const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
       await waitFor(() => expect(result.current.user).toEqual(mockUser))
@@ -212,18 +192,9 @@ describe('useAuth', () => {
   describe('changePassword', () => {
     it('POST /api/auth/change-password にリクエストを送信する', async () => {
       mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(successResponse),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(successResponse),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue(successResponse),
-        })
+        .mockResolvedValueOnce(createJsonResponse(successResponse))
+        .mockResolvedValueOnce(createJsonResponse(successResponse))
+        .mockResolvedValueOnce(createJsonResponse(successResponse))
 
       const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
@@ -239,6 +210,7 @@ describe('useAuth', () => {
       expect(changePasswordCall![1]).toMatchObject({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ newPassword: 'NewPass@123' }),
       })
     })

@@ -42,7 +42,7 @@ React 19 + ASP.NET 10 フルスタックテンプレートプロジェクト
 - **TailwindCSS 4** - スタイリング
 - **shadcn/ui** - UIコンポーネント
 - **oxlint** - リンター
-- **aspida** + **SWR** - 型安全なAPI呼び出し
+- **aspida** + **@aspida/swr** - 型安全なAPI呼び出し
 - **SweetAlert2** - ポップアップアラート/確認ダイアログ
 
 ## 開発方法
@@ -67,6 +67,7 @@ npm run dev
 
 WebApp (ポート5000) が Vite 開発サーバー (ポート5173) にプロキシ転送します。
 同一ドメインでクライアントとAPIが動作します。
+API フェッチ時は原則 `credentials: 'same-origin'` で Cookie 認証情報を送信します。
 
 ### API クライアント生成 (aspida)
 ```bash

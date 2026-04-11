@@ -134,7 +134,7 @@ builder.Services.AddSingleton<IUserService, UserService>();
 | Vite | ビルド・開発サーバー |
 | TailwindCSS 4 | スタイリング |
 | shadcn/ui | UI コンポーネント |
-| aspida + SWR | 型安全 API 呼び出し + データフェッチ |
+| aspida + @aspida/swr | 型安全 API 呼び出し + データフェッチ |
 | SweetAlert2 | ポップアップ・確認ダイアログ |
 | oxlint | リンター |
 | vitest + @testing-library/react | テスト |
@@ -188,6 +188,9 @@ import { useApi } from '@/hooks/useApi'
 
 const { data, error, isLoading } = useApi<SomeType>(path)
 ```
+
+- SWR を使うときは `swr` の `useSWR` ではなく `@aspida/swr` の `useAspidaSWR` を使う
+- API フェッチは原則 `credentials: 'same-origin'` で Cookie 認証情報を送信する（ログインなど明示的な例外を除く）
 
 **認証状態**:
 ```typescript
