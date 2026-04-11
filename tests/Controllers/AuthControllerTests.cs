@@ -122,12 +122,11 @@ public class AuthControllerTests
         {
             RequestServices = new ServiceCollection()
                 .AddSingleton(_authenticationService)
-                .AddSingleton(_userService)
                 .BuildServiceProvider()
         };
 
         return new AuthController(
-            httpContext.RequestServices,
+            new Lazy<IUserService>(() => _userService),
             Options.Create(testLoginOptions),
             environment)
         {

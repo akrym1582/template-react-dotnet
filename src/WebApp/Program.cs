@@ -21,6 +21,7 @@ builder.Services.AddSingleton(_ =>
 // --- Repositories & Services ---
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddSingleton(sp => new Lazy<IUserService>(() => sp.GetRequiredService<IUserService>()));
 builder.Services.Configure<TestLoginOptions>(builder.Configuration.GetSection("TestLogin"));
 
 // --- Authentication: Cookie + JWT Bearer (Entra ID) ---

@@ -16,16 +16,16 @@ namespace WebApp.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly Lazy<IUserService> _userService;
     private readonly IWebHostEnvironment _environment;
     private readonly TestLoginOptions _testLoginOptions;
 
     public AuthController(
-        IServiceProvider serviceProvider,
+        Lazy<IUserService> userService,
         IOptions<TestLoginOptions> testLoginOptions,
         IWebHostEnvironment environment)
     {
-        _serviceProvider = serviceProvider;
+        _userService = userService;
         _testLoginOptions = testLoginOptions.Value;
         _environment = environment;
     }
@@ -36,7 +36,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> Login([FromBody] LoginRequestDto request)
     {
-        var user = await GetUserService().ValidateCredentialsAsync(request.Email, request.Password);
+        var user = await UserService.ValidateCredentialsAsync(request.Email, request.Password);
         if (user is null)
             return Unauthorized(new ApiResponseDto(false, "メールアドレスまたはパスワードが正しくありません。"));
 
@@ -93,7 +93,7 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(oid) || string.IsNullOrEmpty(email))
             return BadRequest(new ApiResponseDto(false, "トークンに必要な情報が含まれていません。"));
 
-        var user = await GetUserService().GetOrCreateEntraUserAsync(oid, email, name ?? email);
+        var user = await UserService.GetOrCreateEntraUserAsync(oid, email, name ?? email);
         await SignInAsync(user);
 
         return Ok(new ApiResponseDto<UserDto>(true, user));
@@ -118,7 +118,7 @@ public class AuthController : ControllerBase
         if (configuredUser is not null)
             return Ok(new ApiResponseDto<UserDto>(true, ToTestLoginUserDto(configuredUser)));
 
-        var user = await GetUserService().GetByIdAsync(userId);
+        var user = await UserService.GetByIdAsync(userId);
 
         if (user is null)
             return Unauthorized(new ApiResponseDto(false));
@@ -153,9 +153,13 @@ public class AuthController : ControllerBase
             });
     }
 
-    private TestLoginUserOption? FindTestLoginUser(string userId) =>
-        _testLoginOptions.Users.FirstOrDefault(
-            user => string.Equals(user.UserId?.Trim(), userId.Trim(), StringComparison.Ordinal));
+    private TestLoginUserOption? FindTestLoginUser(string userId)
+    {
+        var trimmedUserId = userId.Trim();
+
+        return _testLoginOptions.Users.FirstOrDefault(
+            user => string.Equals(user.UserId?.Trim(), trimmedUserId, StringComparison.Ordinal));
+    }
 
     private static UserDto ToTestLoginUserDto(TestLoginUserOption user)
     {
@@ -179,6 +183,6 @@ public class AuthController : ControllerBase
         return normalizedRoles is { Count: > 0 } ? normalizedRoles : [Constants.Roles.User];
     }
 
-    private IUserService GetUserService() =>
-        _serviceProvider.GetRequiredService<IUserService>();
+    private IUserService UserService =>
+        _userService.Value;
 }
