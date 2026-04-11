@@ -52,7 +52,7 @@ public class AuthController : ControllerBase
 
         var users = _testLoginOptions.Users
             .Where(user => !string.IsNullOrWhiteSpace(user.UserId))
-            .Select(user => new TestLoginUserDto(user.UserId.Trim(), NormalizeRoles(user.Roles)))
+            .Select(user => new TestLoginUserDto(user.UserId.Trim(), RoleHelper.NormalizeRoles(user.Roles)))
             .ToList();
 
         return Ok(new ApiResponseDto<IReadOnlyList<TestLoginUserDto>>(true, users));
@@ -126,6 +126,57 @@ public class AuthController : ControllerBase
         return Ok(new ApiResponseDto<UserDto>(true, user));
     }
 
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<ActionResult<ApiResponseDto<UserDto>>> ChangePassword([FromBody] ChangePasswordRequestDto request)
+    {
+        var validationMessage = await UserService.ValidatePasswordPolicyAsync(request.NewPassword);
+        if (validationMessage is not null)
+            return BadRequest(new ApiResponseDto(false, validationMessage));
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null)
+            return Unauthorized(new ApiResponseDto(false, "認証情報を確認できません。"));
+
+        var user = await UserService.ChangePasswordAsync(userId, request.NewPassword);
+        if (user is null)
+            return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
+
+        await SignInAsync(user);
+        return Ok(new ApiResponseDto<UserDto>(true, user, "パスワードを変更しました。"));
+    }
+
+    [Authorize]
+    [HttpPost("reset-password")]
+    public async Task<ActionResult<ApiResponseDto<PasswordResetResultDto>>> ResetPassword()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null)
+            return Unauthorized(new ApiResponseDto(false, "認証情報を確認できません。"));
+
+        var resetResult = await UserService.ResetPasswordAsync(userId);
+        if (resetResult is null)
+            return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
+
+        return Ok(new ApiResponseDto<PasswordResetResultDto>(true, resetResult, "パスワードを初期化しました。"));
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password-by-credentials")]
+    public async Task<ActionResult<ApiResponseDto<PasswordResetResultDto>>> ResetPasswordByCredentials(
+        [FromBody] ResetPasswordByCredentialsRequestDto request)
+    {
+        var user = await UserService.ValidateCredentialsAsync(request.Email, request.CurrentPassword);
+        if (user is null)
+            return Unauthorized(new ApiResponseDto(false, "メールアドレスまたはパスワードが正しくありません。"));
+
+        var resetResult = await UserService.ResetPasswordAsync(user.UserId);
+        if (resetResult is null)
+            return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
+
+        return Ok(new ApiResponseDto<PasswordResetResultDto>(true, resetResult, "パスワードを初期化しました。"));
+    }
+
     private async Task SignInAsync(UserDto user)
     {
         var claims = new List<Claim>
@@ -168,19 +219,11 @@ public class AuthController : ControllerBase
             UserId: userId,
             Email: $"{userId}@test.local",
             DisplayName: userId,
-            Roles: NormalizeRoles(user.Roles),
-            IsActive: true);
-    }
-
-    private static IReadOnlyList<string> NormalizeRoles(IEnumerable<string>? roles)
-    {
-        var normalizedRoles = roles?
-            .Where(role => !string.IsNullOrWhiteSpace(role))
-            .Select(role => role.Trim())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        return normalizedRoles is { Count: > 0 } ? normalizedRoles : [Constants.Roles.User];
+            StoreCode: string.Empty,
+            StoreName: string.Empty,
+            Roles: RoleHelper.NormalizeRoles(user.Roles),
+            IsActive: true,
+            MustChangePassword: false);
     }
 
     private IUserService UserService =>

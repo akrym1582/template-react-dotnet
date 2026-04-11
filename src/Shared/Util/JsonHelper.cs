@@ -23,14 +23,14 @@ public static class JsonHelper
     public static List<string> DeserializeRoles(string? rolesJson)
     {
         if (string.IsNullOrWhiteSpace(rolesJson))
-            return [];
+            return [Constants.Roles.General];
 
-        return JsonSerializer.Deserialize<List<string>>(rolesJson, Options) ?? [];
+        return RoleHelper.NormalizeRoles(JsonSerializer.Deserialize<List<string>>(rolesJson, Options)).ToList();
     }
 
     /// <summary>
     /// Serialize a list of role IDs to a JSON array string.
     /// </summary>
     public static string SerializeRoles(IEnumerable<string> roles) =>
-        JsonSerializer.Serialize(roles, Options);
+        JsonSerializer.Serialize(RoleHelper.NormalizeRoles(roles), Options);
 }

@@ -111,9 +111,10 @@ public record ApiResponseDto(bool Success, string? Message = null);
 
 ### 定数
 
-- ロール: `Constants.Roles.Admin` (`"admin"`), `Constants.Roles.User` (`"user"`)
+- ロール: `Constants.Roles.General` (`"general"`), `Constants.Roles.Manager` (`"manager"`), `Constants.Roles.Privileged` (`"privileged"`)
 - テーブル名: `Constants.UsersTableName`
 - Cookie 名: `Constants.AuthCookieName`
+- `UserManagement` セクションで初期パスワード、パスワードポリシー、役席以上のユーザー追加可否を設定する
 
 ### DI 登録 (`Program.cs`)
 

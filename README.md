@@ -98,6 +98,7 @@ npm run lint
 - 開発環境では `GET /api/auth/test-users` でテストユーザー一覧を取得できます
 - 開発環境では `POST /api/auth/test-login` に `userId` を送るとパスワードなしで Cookie セッションを発行できます
 - ログイン画面には設定済みのテストユーザーがボタン表示されます
+- テストログインのロールは `general` / `manager` / `privileged` を使用します
 
 ### Azure Entra ID 認証
 1. クライアントで Entra ID から JWT トークン取得
@@ -109,4 +110,9 @@ npm run lint
 ## ユーザー管理
 
 - Azure Table Storage に保存 (PartitionKey: "USER", RowKey: UserId)
-- ロールは JSON 配列で `RolesJson` カラムに保存 (例: `["admin","user"]`)
+- ユーザー一覧では店番プルダウンで絞り込み表示できます
+- ユーザー詳細ではユーザーGUIDを固定IDとして表示し、表示名・ユーザーID（メールアドレス）を更新できます
+- ロールは `general` / `manager` / `privileged` を `RolesJson` に保存します
+- `manager` 以上は他ユーザー詳細とロールを更新できます
+- `UserManagement:AllowManagerUserCreation` が `true` のとき、`manager` 以上はユーザー追加できます
+- パスワード初期化文字列とポリシーは `UserManagement` セクションで設定します

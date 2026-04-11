@@ -36,7 +36,7 @@ public class AuthControllerTests
                     new TestLoginUserOption
                     {
                         UserId = "test-admin",
-                        Roles = ["admin", "user"]
+                        Roles = ["privileged", "general"]
                     }
                 ]
             });
@@ -48,15 +48,15 @@ public class AuthControllerTests
         Assert.True(response.Success);
         Assert.NotNull(response.Data);
         Assert.Equal("test-admin", response.Data.UserId);
-        Assert.Equal(["admin", "user"], response.Data.Roles);
+        Assert.Equal(["privileged", "general"], response.Data.Roles);
 
         await _authenticationService.Received(1).SignInAsync(
             Arg.Any<HttpContext>(),
             Arg.Any<string?>(),
             Arg.Is<ClaimsPrincipal>(principal =>
                 principal.HasClaim(ClaimTypes.NameIdentifier, "test-admin")
-                && principal.IsInRole("admin")
-                && principal.IsInRole("user")),
+                && principal.IsInRole("privileged")
+                && principal.IsInRole("general")),
             Arg.Any<AuthenticationProperties?>());
     }
 
@@ -85,7 +85,7 @@ public class AuthControllerTests
                     new TestLoginUserOption
                     {
                         UserId = "test-user",
-                        Roles = ["user"]
+                        Roles = ["general"]
                     }
                 ]
             });
@@ -105,7 +105,7 @@ public class AuthControllerTests
         Assert.NotNull(response.Data);
         Assert.Equal("test-user", response.Data.UserId);
         Assert.Equal("test-user@test.local", response.Data.Email);
-        Assert.Equal(["user"], response.Data.Roles);
+        Assert.Equal(["general"], response.Data.Roles);
     }
 
     private AuthController CreateController(TestLoginOptions testLoginOptions)

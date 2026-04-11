@@ -18,9 +18,11 @@ public class UserEntity : ITableEntity
     public string Email { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
+    public string StoreCode { get; set; } = string.Empty;
+    public string StoreName { get; set; } = string.Empty;
 
     /// <summary>
-    /// JSON array of role IDs, e.g. ["admin","editor"]
+    /// JSON array of role IDs, e.g. ["general","manager"]
     /// </summary>
     public string RolesJson { get; set; } = "[]";
 
@@ -30,6 +32,7 @@ public class UserEntity : ITableEntity
     public string? EntraObjectId { get; set; }
 
     public bool IsActive { get; set; } = true;
+    public bool MustChangePassword { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }
 }

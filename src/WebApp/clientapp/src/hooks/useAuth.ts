@@ -6,13 +6,21 @@ export interface UserDto {
   userId: string
   email: string
   displayName: string
+  storeCode: string
+  storeName: string
   roles: string[]
   isActive: boolean
+  mustChangePassword: boolean
 }
 
 export interface TestLoginUserDto {
   userId: string
   roles: string[]
+}
+
+export interface PasswordResetResultDto {
+  initialPassword: string
+  mustChangePassword: boolean
 }
 
 interface ApiResponse<T> {
@@ -89,6 +97,38 @@ export function useAuth() {
     await mutate(undefined)
   }
 
+  const changePassword = async (newPassword: string) => {
+    const res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ newPassword }),
+    })
+    const json: ApiResponse<UserDto> = await res.json()
+    if (json.success) {
+      await mutate()
+    }
+    return json
+  }
+
+  const resetPassword = async () => {
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      credentials: 'same-origin',
+    })
+    return (await res.json()) as ApiResponse<PasswordResetResultDto>
+  }
+
+  const resetPasswordByCredentials = async (email: string, currentPassword: string) => {
+    const res = await fetch('/api/auth/reset-password-by-credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ email, currentPassword }),
+    })
+    return (await res.json()) as ApiResponse<PasswordResetResultDto>
+  }
+
   return {
     user: data?.success ? data.data : undefined,
     isLoading,
@@ -97,5 +137,8 @@ export function useAuth() {
     testLogin,
     entraLogin,
     logout,
+    changePassword,
+    resetPassword,
+    resetPasswordByCredentials,
   }
 }
