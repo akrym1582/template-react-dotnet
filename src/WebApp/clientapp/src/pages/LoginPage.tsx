@@ -3,12 +3,13 @@ import type { FormEvent } from 'react'
 import type { TestLoginUserDto } from '@/hooks/useAuth'
 import { useAuth } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
+import { notifyInitialPassword } from '@/lib/password'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LoginPage() {
-  const { login, testLogin } = useAuth()
+  const { login, testLogin, resetPasswordByCredentials } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [testLoginUsers, setTestLoginUsers] = useState<TestLoginUserDto[]>([])
@@ -68,6 +69,27 @@ export default function LoginPage() {
     }
   }
 
+  const handleResetPassword = async () => {
+    if (isSubmitting) return
+
+    setIsSubmitting(true)
+    try {
+      const result = await alert.withLoading(() => resetPasswordByCredentials(email, password))
+      if (result && !result.success) {
+        await alert.error(result.message ?? 'パスワードの初期化に失敗しました。')
+        return
+      }
+
+      await notifyInitialPassword(
+        result?.data?.initialPassword,
+        '初期パスワードをクリップボードにコピーしました。再ログイン後に変更してください。',
+        'パスワードを初期化しました。初期パスワードは設定値 UserManagement:InitialPassword を確認してください。',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center">
       <Card className="w-full max-w-md">
@@ -105,6 +127,18 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'ログイン中...' : 'ログイン'}
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isSubmitting}
+              onClick={() => void handleResetPassword()}
+            >
+              現在のパスワードで初期化
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              ログイン画面からの初期化では、メールアドレスと現在のパスワードの入力が必要です。
+            </p>
           </form>
 
           {testLoginUsers.length > 0 && (

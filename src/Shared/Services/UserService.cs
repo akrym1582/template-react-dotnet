@@ -8,10 +8,12 @@ namespace Shared.Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _repository;
+    private readonly UserManagementSettings _settings;
 
-    public UserService(IUserRepository repository)
+    public UserService(IUserRepository repository, UserManagementSettings? settings = null)
     {
         _repository = repository;
+        _settings = settings ?? new UserManagementSettings();
     }
 
     public async Task<UserDto?> GetByIdAsync(string userId)
@@ -33,21 +35,54 @@ public class UserService : IUserService
     }
 
     public async Task<UserDto> CreateAsync(
-        string email, string displayName, string password, IEnumerable<string>? roles = null)
+        string email,
+        string displayName,
+        string password,
+        string storeCode,
+        string storeName,
+        IEnumerable<string>? roles = null,
+        bool mustChangePassword = false)
     {
         var userId = Guid.NewGuid().ToString();
-        var roleList = roles?.ToList() ?? [Constants.Roles.User];
+        var roleList = RoleHelper.NormalizeRoles(roles);
 
         var entity = new UserEntity
         {
             RowKey = userId,
             Email = email,
             DisplayName = displayName,
+            StoreCode = storeCode,
+            StoreName = storeName,
             PasswordHash = PasswordHelper.Hash(password),
             RolesJson = JsonHelper.SerializeRoles(roleList),
             CreatedAt = DateTime.UtcNow,
-            IsActive = true
+            IsActive = true,
+            MustChangePassword = mustChangePassword
         };
+
+        await _repository.UpsertAsync(entity);
+        return ToDto(entity);
+    }
+
+    public async Task<UserDto?> UpdateAsync(
+        string userId,
+        string email,
+        string displayName,
+        string storeCode,
+        string storeName,
+        IEnumerable<string>? roles = null)
+    {
+        var entity = await _repository.GetByIdAsync(userId);
+        if (entity is null)
+            return null;
+
+        entity.Email = email;
+        entity.DisplayName = displayName;
+        entity.StoreCode = storeCode;
+        entity.StoreName = storeName;
+
+        if (roles is not null)
+            entity.RolesJson = JsonHelper.SerializeRoles(roles);
 
         await _repository.UpsertAsync(entity);
         return ToDto(entity);
@@ -87,7 +122,7 @@ public class UserService : IUserService
             Email = email,
             DisplayName = displayName,
             EntraObjectId = entraObjectId,
-            RolesJson = JsonHelper.SerializeRoles([Constants.Roles.User]),
+            RolesJson = JsonHelper.SerializeRoles([Constants.Roles.General]),
             CreatedAt = DateTime.UtcNow,
             IsActive = true
         };
@@ -95,6 +130,35 @@ public class UserService : IUserService
         await _repository.UpsertAsync(entity);
         return ToDto(entity);
     }
+
+    public async Task<UserDto?> ChangePasswordAsync(string userId, string newPassword)
+    {
+        var entity = await _repository.GetByIdAsync(userId);
+        if (entity is null)
+            return null;
+
+        entity.PasswordHash = PasswordHelper.Hash(newPassword);
+        entity.MustChangePassword = false;
+        await _repository.UpsertAsync(entity);
+
+        return ToDto(entity);
+    }
+
+    public async Task<PasswordResetResultDto?> ResetPasswordAsync(string userId)
+    {
+        var entity = await _repository.GetByIdAsync(userId);
+        if (entity is null)
+            return null;
+
+        entity.PasswordHash = PasswordHelper.Hash(_settings.InitialPassword);
+        entity.MustChangePassword = true;
+        await _repository.UpsertAsync(entity);
+
+        return new PasswordResetResultDto(_settings.InitialPassword, true);
+    }
+
+    public Task<string?> ValidatePasswordPolicyAsync(string password) =>
+        Task.FromResult(PasswordPolicyHelper.Validate(password, _settings.PasswordPolicy));
 
     public async Task DeleteAsync(string userId) =>
         await _repository.DeleteAsync(userId);
@@ -104,6 +168,9 @@ public class UserService : IUserService
             UserId: entity.RowKey,
             Email: entity.Email,
             DisplayName: entity.DisplayName,
+            StoreCode: entity.StoreCode,
+            StoreName: entity.StoreName,
             Roles: JsonHelper.DeserializeRoles(entity.RolesJson),
-            IsActive: entity.IsActive);
+            IsActive: entity.IsActive,
+            MustChangePassword: entity.MustChangePassword);
 }
