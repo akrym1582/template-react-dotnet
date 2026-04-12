@@ -3,17 +3,30 @@ using Shared.Dto;
 
 namespace WebApp.Security;
 
+/// <summary>
+/// 認証済みユーザーからの API リクエストに対して XSRF トークンを検証するミドルウェア。
+/// ログインエンドポイントなど一部のパスは検証をスキップする。
+/// </summary>
 public class XsrfValidationMiddleware
 {
     private static readonly PathString ApiPathPrefix = new("/api");
 
     private readonly RequestDelegate _next;
 
+    /// <summary>
+    /// <see cref="XsrfValidationMiddleware"/> の新しいインスタンスを初期化する。
+    /// </summary>
+    /// <param name="next">パイプラインの次のミドルウェア。</param>
     public XsrfValidationMiddleware(RequestDelegate next)
     {
         _next = next;
     }
 
+    /// <summary>
+    /// リクエストを処理する。認証済みの API リクエストに対して XSRF トークンを検証する。
+    /// </summary>
+    /// <param name="context">現在の HTTP コンテキスト。</param>
+    /// <param name="antiforgery">アンチフォージェリサービス。</param>
     public async Task InvokeAsync(HttpContext context, IAntiforgery antiforgery)
     {
         if (ShouldValidate(context))

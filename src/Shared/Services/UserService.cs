@@ -5,35 +5,47 @@ using Shared.Util;
 
 namespace Shared.Services;
 
+/// <summary>
+/// <see cref="IUserService"/> の実装クラス。ユーザー管理のビジネスロジックを提供する。
+/// </summary>
 public class UserService : IUserService
 {
     private readonly IUserRepository _repository;
     private readonly UserManagementSettings _settings;
 
+    /// <summary>
+    /// <see cref="UserService"/> の新しいインスタンスを初期化する。
+    /// </summary>
+    /// <param name="repository">ユーザーリポジトリ。</param>
+    /// <param name="settings">ユーザー管理設定。<c>null</c> の場合は既定値を使用する。</param>
     public UserService(IUserRepository repository, UserManagementSettings? settings = null)
     {
         _repository = repository;
         _settings = settings ?? new UserManagementSettings();
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto?> GetByIdAsync(string userId)
     {
         var entity = await _repository.GetByIdAsync(userId);
         return entity is null ? null : ToDto(entity);
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto?> GetByEmailAsync(string email)
     {
         var entity = await _repository.GetByEmailAsync(email);
         return entity is null ? null : ToDto(entity);
     }
 
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<UserDto>> GetAllAsync()
     {
         var entities = await _repository.GetAllAsync();
         return entities.Select(ToDto).ToList();
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto> CreateAsync(
         string email,
         string displayName,
@@ -64,6 +76,7 @@ public class UserService : IUserService
         return ToDto(entity);
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto?> UpdateAsync(
         string userId,
         string email,
@@ -88,6 +101,7 @@ public class UserService : IUserService
         return ToDto(entity);
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto?> ValidateCredentialsAsync(string email, string password)
     {
         var entity = await _repository.GetByEmailAsync(email);
@@ -103,6 +117,7 @@ public class UserService : IUserService
         return ToDto(entity);
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto> GetOrCreateEntraUserAsync(
         string entraObjectId, string email, string displayName)
     {
@@ -131,6 +146,7 @@ public class UserService : IUserService
         return ToDto(entity);
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto?> ChangePasswordAsync(string userId, string newPassword)
     {
         var entity = await _repository.GetByIdAsync(userId);
@@ -144,6 +160,7 @@ public class UserService : IUserService
         return ToDto(entity);
     }
 
+    /// <inheritdoc/>
     public async Task<PasswordResetResultDto?> ResetPasswordAsync(string userId)
     {
         var entity = await _repository.GetByIdAsync(userId);
@@ -157,9 +174,11 @@ public class UserService : IUserService
         return new PasswordResetResultDto(_settings.InitialPassword, true);
     }
 
+    /// <inheritdoc/>
     public Task<string?> ValidatePasswordPolicyAsync(string password) =>
         Task.FromResult(PasswordPolicyHelper.Validate(password, _settings.PasswordPolicy));
 
+    /// <inheritdoc/>
     public async Task DeleteAsync(string userId) =>
         await _repository.DeleteAsync(userId);
 
