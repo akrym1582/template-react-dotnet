@@ -26,8 +26,7 @@ public static class PrecompressedSpaApplicationBuilderExtensions
 
         app.Use(async (context, next) =>
         {
-            if ((HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method))
-                && Path.HasExtension(context.Request.Path.Value)
+            if (PrecompressedSpaRequestMatcher.ShouldTryResolvePrecompressedAsset(context.Request)
                 && precompressedStaticFileResolver.TryResolve(
                     context.Request.Path,
                     context.Request.Headers.AcceptEncoding,
@@ -51,6 +50,12 @@ public static class PrecompressedSpaApplicationBuilderExtensions
         app.UseStaticFiles(spaStaticFiles);
         app.MapFallback(async context =>
         {
+            if (PrecompressedSpaRequestMatcher.IsApiRequest(context.Request.Path))
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+
             if (precompressedStaticFileResolver.TryResolve(
                 SpaIndexPath,
                 context.Request.Headers.AcceptEncoding,
