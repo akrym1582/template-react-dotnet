@@ -3,7 +3,6 @@ using Azure.Data.Tables;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Repository;
 using Shared.Services;
@@ -107,70 +106,7 @@ app.MapControllers();
 
 if (!app.Environment.IsDevelopment())
 {
-    var spaDistPath = Path.Combine(app.Environment.ContentRootPath, "clientapp", "dist");
-    var spaStaticFiles = new StaticFileOptions
-    {
-        FileProvider = new PhysicalFileProvider(spaDistPath),
-    };
-    var precompressedStaticFileResolver = new PrecompressedStaticFileResolver(spaDistPath);
-
-    app.Use(async (context, next) =>
-    {
-        if ((HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method))
-            && Path.HasExtension(context.Request.Path.Value)
-            && precompressedStaticFileResolver.TryResolve(
-                context.Request.Path,
-                context.Request.Headers.AcceptEncoding,
-                out var precompressedFile)
-            && precompressedFile is not null)
-        {
-            context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.ContentEncoding] = precompressedFile.ContentEncoding;
-            context.Response.Headers.AppendCommaSeparatedValues(
-                Microsoft.Net.Http.Headers.HeaderNames.Vary,
-                Microsoft.Net.Http.Headers.HeaderNames.AcceptEncoding);
-
-            await Results.File(
-                precompressedFile.PhysicalPath,
-                precompressedFile.ContentType,
-                lastModified: precompressedFile.LastModified,
-                enableRangeProcessing: true).ExecuteAsync(context);
-
-            return;
-        }
-
-        await next();
-    });
-
-    app.UseStaticFiles(spaStaticFiles);
-    app.MapFallback(async context =>
-    {
-        const string SpaIndexPath = "/index.html";
-
-        if (precompressedStaticFileResolver.TryResolve(
-            SpaIndexPath,
-            context.Request.Headers.AcceptEncoding,
-            out var precompressedFile)
-            && precompressedFile is not null)
-        {
-            context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.ContentEncoding] = precompressedFile.ContentEncoding;
-            context.Response.Headers.AppendCommaSeparatedValues(
-                Microsoft.Net.Http.Headers.HeaderNames.Vary,
-                Microsoft.Net.Http.Headers.HeaderNames.AcceptEncoding);
-
-            await Results.File(
-                precompressedFile.PhysicalPath,
-                precompressedFile.ContentType,
-                lastModified: precompressedFile.LastModified,
-                enableRangeProcessing: true).ExecuteAsync(context);
-
-            return;
-        }
-
-        await Results.File(
-            Path.Combine(spaDistPath, "index.html"),
-            "text/html; charset=utf-8",
-            lastModified: File.GetLastWriteTimeUtc(Path.Combine(spaDistPath, "index.html"))).ExecuteAsync(context);
-    });
+    app.UsePrecompressedSpaStaticFiles();
 }
 
 app.Run();
