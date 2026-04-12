@@ -1,7 +1,16 @@
 namespace Shared.Util;
 
+/// <summary>
+/// パスワードポリシーの検証を行うユーティリティクラス。
+/// </summary>
 public static class PasswordPolicyHelper
 {
+    /// <summary>
+    /// パスワードがポリシーを満たしているか検証する。
+    /// </summary>
+    /// <param name="password">検証するパスワード（平文）。</param>
+    /// <param name="policy">検証に使用するパスワードポリシー設定。</param>
+    /// <returns>ポリシー違反がある場合はエラーメッセージ、問題なければ <c>null</c>。</returns>
     public static string? Validate(string password, PasswordPolicySettings policy)
     {
         if (password.Length < policy.MinLength)

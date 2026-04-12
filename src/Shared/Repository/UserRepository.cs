@@ -4,16 +4,24 @@ using Shared.Util;
 
 namespace Shared.Repository;
 
+/// <summary>
+/// Azure Table Storage を使用したユーザーリポジトリの実装。
+/// </summary>
 public class UserRepository : IUserRepository
 {
     private readonly TableClient _tableClient;
 
+    /// <summary>
+    /// <see cref="UserRepository"/> の新しいインスタンスを初期化する。
+    /// </summary>
+    /// <param name="tableServiceClient">Azure Table Storage のサービスクライアント。</param>
     public UserRepository(TableServiceClient tableServiceClient)
     {
         _tableClient = tableServiceClient.GetTableClient(Constants.UsersTableName);
         _tableClient.CreateIfNotExists();
     }
 
+    /// <inheritdoc/>
     public async Task<UserEntity?> GetByIdAsync(string userId)
     {
         try
@@ -27,6 +35,7 @@ public class UserRepository : IUserRepository
         }
     }
 
+    /// <inheritdoc/>
     public async Task<UserEntity?> GetByEmailAsync(string email)
     {
         var query = _tableClient.QueryAsync<UserEntity>(
@@ -40,6 +49,7 @@ public class UserRepository : IUserRepository
         return null;
     }
 
+    /// <inheritdoc/>
     public async Task<UserEntity?> GetByEntraObjectIdAsync(string entraObjectId)
     {
         var query = _tableClient.QueryAsync<UserEntity>(
@@ -53,6 +63,7 @@ public class UserRepository : IUserRepository
         return null;
     }
 
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<UserEntity>> GetAllAsync()
     {
         var users = new List<UserEntity>();
@@ -67,12 +78,14 @@ public class UserRepository : IUserRepository
         return users;
     }
 
+    /// <inheritdoc/>
     public async Task UpsertAsync(UserEntity user)
     {
         user.PartitionKey = Constants.UserPartitionKey;
         await _tableClient.UpsertEntityAsync(user, TableUpdateMode.Replace);
     }
 
+    /// <inheritdoc/>
     public async Task DeleteAsync(string userId)
     {
         await _tableClient.DeleteEntityAsync(Constants.UserPartitionKey, userId);
