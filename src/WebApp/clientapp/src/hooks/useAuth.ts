@@ -1,11 +1,11 @@
 import useAspidaSWR from '@aspida/swr'
 import api from '@/api/$api'
-import { aspidaClient, aspidaClientNoThrowHttpErrors } from '@/lib/aspida'
+import { aspidaClient, aspidaClientNoThrow } from '@/lib/aspida'
 
 export type { PasswordResetResultDto, TestLoginUserDto, UserDto } from '@/api/auth/_types'
 
 const authApi = api(aspidaClient).auth
-const authApiNoThrow = api(aspidaClientNoThrowHttpErrors).auth
+const authApiNoThrow = api(aspidaClientNoThrow).auth
 
 export function useAuth() {
   const { data, error, isLoading, mutate } = useAspidaSWR(

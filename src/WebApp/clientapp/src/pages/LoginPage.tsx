@@ -4,13 +4,13 @@ import api from '@/api/$api'
 import type { TestLoginUserDto } from '@/hooks/useAuth'
 import { useAuth } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
-import { aspidaClientNoThrowHttpErrors } from '@/lib/aspida'
+import { aspidaClientNoThrow } from '@/lib/aspida'
 import { notifyInitialPassword } from '@/lib/password'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-const authApi = api(aspidaClientNoThrowHttpErrors).auth
+const authApi = api(aspidaClientNoThrow).auth
 
 export default function LoginPage() {
   const { login, testLogin, resetPasswordByCredentials } = useAuth()

@@ -44,7 +44,7 @@ export const apiFetch: typeof fetch = (input, init) => {
 }
 
 export const aspidaClient = aspida(apiFetch, fetchConfig)
-export const aspidaClientNoThrowHttpErrors = aspida(apiFetch, {
+export const aspidaClientNoThrow = aspida(apiFetch, {
   ...fetchConfig,
   throwHttpErrors: false,
 })
