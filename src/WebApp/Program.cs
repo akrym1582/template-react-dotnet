@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Shared.Repository;
 using Shared.Services;
 using WebApp.Options;
+using WebApp.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,15 @@ builder.Services.AddSingleton(
 builder.Services.AddSingleton<IUserService, UserService>();
 builder.Services.AddSingleton(sp => new Lazy<IUserService>(() => sp.GetRequiredService<IUserService>()));
 builder.Services.Configure<TestLoginOptions>(builder.Configuration.GetSection("TestLogin"));
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = Shared.Util.Constants.AntiforgeryCookieName;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.HeaderName = Shared.Util.Constants.XsrfHeaderName;
+});
+builder.Services.AddScoped<IXsrfTokenCookieService, XsrfTokenCookieService>();
 
 // --- Authentication: Cookie + JWT Bearer (Entra ID) ---
 builder.Services
@@ -87,6 +97,7 @@ app.UseStaticFiles();
 app.UseSpaStaticFiles();
 
 app.UseAuthentication();
+app.UseMiddleware<XsrfValidationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

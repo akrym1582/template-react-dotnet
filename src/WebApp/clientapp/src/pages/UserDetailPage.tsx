@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import type { UserDto } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
+import { apiFetch } from '@/lib/aspida'
 import { notifyInitialPassword } from '@/lib/password'
 import { canManageUsers, formatRole, roleOptions } from '@/lib/user'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -40,7 +41,7 @@ export default function UserDetailPage() {
       }
 
       setIsLoading(true)
-      const response = await fetch(`/api/user/${targetUserId}`, { credentials: 'same-origin' })
+      const response = await apiFetch(`/api/user/${targetUserId}`)
       const json: ApiResponse<UserDto> = await response.json()
 
       if (!json.success || !json.data) {
@@ -65,10 +66,9 @@ export default function UserDetailPage() {
     event.preventDefault()
     if (!targetUserId) return
 
-    const response = await fetch(`/api/user/${targetUserId}`, {
+    const response = await apiFetch(`/api/user/${targetUserId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
       body: JSON.stringify({
         email,
         displayName,

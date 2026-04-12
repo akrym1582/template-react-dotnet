@@ -35,6 +35,7 @@ React 19 + ASP.NET 10 フルスタックテンプレートプロジェクト
 - **Azure Table Storage** - ユーザー情報管理
 - **Azure Blob Storage** / **Queue Storage** / **Cosmos DB** - インフラ
 - **Cookie認証** + **Azure Entra ID** (JWT → Cookie)
+- **XSRF 対策** - ログイン時にトークン cookie を発行し、以降の API リクエストで `X-XSRF-TOKEN` を検証
 
 ### フロントエンド
 - **React 19** + **TypeScript**
@@ -68,6 +69,7 @@ npm run dev
 WebApp (ポート5000) が Vite 開発サーバー (ポート5173) にプロキシ転送します。
 同一ドメインでクライアントとAPIが動作します。
 API フェッチ時は原則 `credentials: 'same-origin'` で Cookie 認証情報を送信します。
+クライアント共通モジュールが `XSRF-TOKEN` cookie を自動で `X-XSRF-TOKEN` ヘッダーに付与するため、通常の API 呼び出しでは個別対応は不要です。
 
 ### API クライアント生成 (aspida)
 ```bash
@@ -106,7 +108,8 @@ npm run lint
 2. `POST /api/auth/entra-login` で JWT を送信
 3. サーバーで JWT 検証、ユーザー自動作成/取得
 4. Cookie セッション発行
-5. 以降 Cookie で認証
+5. 同時に `XSRF-TOKEN` cookie を発行
+6. 以降 Cookie で認証しつつ、`X-XSRF-TOKEN` ヘッダーを送信
 
 ## ユーザー管理
 

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import type { TestLoginUserDto } from '@/hooks/useAuth'
 import { useAuth } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
+import { apiFetch } from '@/lib/aspida'
 import { notifyInitialPassword } from '@/lib/password'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,9 +20,7 @@ export default function LoginPage() {
     let isMounted = true
 
     const loadTestLoginUsers = async () => {
-      const res = await fetch('/api/auth/test-users', {
-        credentials: 'same-origin',
-      })
+      const res = await apiFetch('/api/auth/test-users')
 
       if (!res.ok) {
         return

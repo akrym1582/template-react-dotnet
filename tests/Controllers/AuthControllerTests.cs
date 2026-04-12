@@ -11,6 +11,7 @@ using Shared.Dto;
 using Shared.Services;
 using WebApp.Controllers;
 using WebApp.Options;
+using WebApp.Security;
 
 namespace Tests.Controllers;
 
@@ -18,11 +19,13 @@ public class AuthControllerTests
 {
     private readonly IUserService _userService;
     private readonly IAuthenticationService _authenticationService;
+    private readonly IXsrfTokenCookieService _xsrfTokenCookieService;
 
     public AuthControllerTests()
     {
         _userService = Substitute.For<IUserService>();
         _authenticationService = Substitute.For<IAuthenticationService>();
+        _xsrfTokenCookieService = Substitute.For<IXsrfTokenCookieService>();
     }
 
     [Fact]
@@ -58,6 +61,7 @@ public class AuthControllerTests
                 && principal.IsInRole("privileged")
                 && principal.IsInRole("general")),
             Arg.Any<AuthenticationProperties?>());
+        _xsrfTokenCookieService.Received(1).RefreshTokenCookie(Arg.Any<HttpContext>());
     }
 
     [Fact]
@@ -108,6 +112,19 @@ public class AuthControllerTests
         Assert.Equal(["general"], response.Data.Roles);
     }
 
+    [Fact]
+    public async Task Logout_XSRF用Cookie削除を呼び出す()
+    {
+        var controller = CreateController(new TestLoginOptions());
+
+        var result = await controller.Logout();
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var response = Assert.IsType<ApiResponseDto>(okResult.Value);
+        Assert.True(response.Success);
+        _xsrfTokenCookieService.Received(1).DeleteTokenCookies(controller.HttpContext);
+    }
+
     private AuthController CreateController(TestLoginOptions testLoginOptions)
     {
         var environment = Substitute.For<IWebHostEnvironment>();
@@ -128,7 +145,8 @@ public class AuthControllerTests
         return new AuthController(
             new Lazy<IUserService>(() => _userService),
             Options.Create(testLoginOptions),
-            environment)
+            environment,
+            _xsrfTokenCookieService)
         {
             ControllerContext = new ControllerContext
             {

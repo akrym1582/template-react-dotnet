@@ -1,6 +1,6 @@
 import useAspidaSWR from '@aspida/swr'
 import api from '@/api/$api'
-import { aspidaClient, createJsonGetApi } from '@/lib/aspida'
+import { apiFetch, aspidaClient, createJsonGetApi } from '@/lib/aspida'
 
 export interface UserDto {
   userId: string
@@ -42,10 +42,9 @@ export function useAuth() {
   )
 
   const login = async (email: string, password: string) => {
-    const res = await fetch(authApi.login.$path(), {
+    const res = await apiFetch(authApi.login.$path(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
       body: JSON.stringify({ email, password }),
     })
     const json: ApiResponse<UserDto> = await res.json()
@@ -56,10 +55,9 @@ export function useAuth() {
   }
 
   const testLogin = async (userId: string) => {
-    const res = await fetch('/api/auth/test-login', {
+    const res = await apiFetch('/api/auth/test-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
       body: JSON.stringify({ userId }),
     })
     const json: ApiResponse<UserDto> = await res.json()
@@ -70,10 +68,9 @@ export function useAuth() {
   }
 
   const entraLogin = async (idToken: string) => {
-    const res = await fetch(authApi.entra_login.$path(), {
+    const res = await apiFetch(authApi.entra_login.$path(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
       body: JSON.stringify({ idToken }),
     })
     const json: ApiResponse<UserDto> = await res.json()
@@ -84,18 +81,16 @@ export function useAuth() {
   }
 
   const logout = async () => {
-    await fetch(authApi.logout.$path(), {
+    await apiFetch(authApi.logout.$path(), {
       method: 'POST',
-      credentials: 'same-origin',
     })
     await mutate(undefined)
   }
 
   const changePassword = async (newPassword: string) => {
-    const res = await fetch('/api/auth/change-password', {
+    const res = await apiFetch('/api/auth/change-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
       body: JSON.stringify({ newPassword }),
     })
     const json: ApiResponse<UserDto> = await res.json()
@@ -106,18 +101,16 @@ export function useAuth() {
   }
 
   const resetPassword = async () => {
-    const res = await fetch('/api/auth/reset-password', {
+    const res = await apiFetch('/api/auth/reset-password', {
       method: 'POST',
-      credentials: 'same-origin',
     })
     return (await res.json()) as ApiResponse<PasswordResetResultDto>
   }
 
   const resetPasswordByCredentials = async (email: string, currentPassword: string) => {
-    const res = await fetch('/api/auth/reset-password-by-credentials', {
+    const res = await apiFetch('/api/auth/reset-password-by-credentials', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
       body: JSON.stringify({ email, currentPassword }),
     })
     return (await res.json()) as ApiResponse<PasswordResetResultDto>

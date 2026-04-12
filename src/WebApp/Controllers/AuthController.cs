@@ -9,6 +9,7 @@ using Shared.Dto;
 using Shared.Services;
 using Shared.Util;
 using WebApp.Options;
+using WebApp.Security;
 
 namespace WebApp.Controllers;
 
@@ -19,15 +20,18 @@ public class AuthController : ControllerBase
     private readonly Lazy<IUserService> _userService;
     private readonly IWebHostEnvironment _environment;
     private readonly TestLoginOptions _testLoginOptions;
+    private readonly IXsrfTokenCookieService _xsrfTokenCookieService;
 
     public AuthController(
         Lazy<IUserService> userService,
         IOptions<TestLoginOptions> testLoginOptions,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment,
+        IXsrfTokenCookieService xsrfTokenCookieService)
     {
         _userService = userService;
         _testLoginOptions = testLoginOptions.Value;
         _environment = environment;
+        _xsrfTokenCookieService = xsrfTokenCookieService;
     }
 
     /// <summary>
@@ -103,6 +107,7 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<ApiResponseDto>> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        _xsrfTokenCookieService.DeleteTokenCookies(HttpContext);
         return Ok(new ApiResponseDto(true, "ログアウトしました。"));
     }
 
@@ -202,6 +207,8 @@ public class AuthController : ControllerBase
                 IsPersistent = true,
                 ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
             });
+
+        _xsrfTokenCookieService.RefreshTokenCookie(HttpContext);
     }
 
     private TestLoginUserOption? FindTestLoginUser(string userId)
