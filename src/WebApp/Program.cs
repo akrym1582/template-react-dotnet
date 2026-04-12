@@ -96,6 +96,12 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi(OpenApiRoutes.ApiDocumentPath);
 }
 
+if (app.Environment.IsProduction())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 
 app.UseAuthentication();
