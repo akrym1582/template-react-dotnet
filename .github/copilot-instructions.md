@@ -123,6 +123,11 @@ builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IUserService, UserService>();
 ```
 
+### NuGet パッケージ管理
+
+- .NET のパッケージ バージョンはリポジトリ ルートの `Directory.Packages.props` で中央管理する
+- 各 `.csproj` の `PackageReference` には `Version` を直書きしない
+
 ---
 
 ## フロントエンド (React 19 + TypeScript)
