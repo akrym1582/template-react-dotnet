@@ -12,17 +12,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
+/** ユーザー一覧取得 API のレスポンス型 */
 interface UserListResponseDto {
+  /** ユーザー一覧 */
   users: UserDto[]
+  /** 新規ユーザー追加が許可されているかどうか */
   allowUserCreation: boolean
 }
 
+/** 汎用 API レスポンス型（ページローカル用） */
 interface ApiResponse<T> {
+  /** 処理の成否 */
   success: boolean
+  /** レスポンスデータ */
   data?: T
+  /** エラーメッセージなどの補足メッセージ */
   message?: string
 }
 
+/**
+ * ユーザー一覧ページコンポーネント。
+ * 全ユーザーを店番でフィルタリングして表示する。
+ * ユーザー管理権限があり新規作成が許可されている場合、ユーザー追加フォームも表示する。
+ */
 export default function UserListPage() {
   const { user } = useAuth()
   const [users, setUsers] = useState<UserDto[]>([])
@@ -35,6 +47,7 @@ export default function UserListPage() {
   const [createStoreName, setCreateStoreName] = useState('')
   const [createRole, setCreateRole] = useState('general')
 
+  /** ユーザー一覧を API から取得してステートを更新する */
   const loadUsers = async () => {
     setIsLoading(true)
     try {
@@ -57,6 +70,7 @@ export default function UserListPage() {
     void loadUsers()
   }, [])
 
+  /** ユーザー一覧から店番の重複を排除して店番一覧を生成する */
   const stores = useMemo(() => {
     const uniqueStores = new Map<string, string>()
 
@@ -83,6 +97,11 @@ export default function UserListPage() {
     ? users.filter((targetUser) => targetUser.storeCode === effectiveSelectedStoreCode)
     : users
 
+  /**
+   * ユーザー追加フォームの送信ハンドラ。
+   * 入力内容で新規ユーザーを作成し、初期パスワードをクリップボードへコピーする。
+   * @param event - フォーム送信イベント
+   */
   const handleCreate = async (event: FormEvent) => {
     event.preventDefault()
 

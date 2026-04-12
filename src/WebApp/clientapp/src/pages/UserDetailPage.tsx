@@ -12,12 +12,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
+/** 汎用 API レスポンス型（ページローカル用） */
 interface ApiResponse<T> {
+  /** 処理の成否 */
   success: boolean
+  /** レスポンスデータ */
   data?: T
+  /** エラーメッセージなどの補足メッセージ */
   message?: string
 }
 
+/**
+ * ユーザー詳細ページコンポーネント。
+ * URL パラメータ `:userId` に対応するユーザーの詳細情報を表示・編集する。
+ * パラメータが省略された場合はログイン中ユーザー自身の情報を表示する。
+ * ユーザー管理権限を持つ場合は店番・店名・ロールの編集も可能。
+ * 自分自身のユーザーに対してはパスワード初期化ボタンを表示する。
+ */
 export default function UserDetailPage() {
   const params = useParams()
   const { user, logout, resetPassword } = useAuth()
@@ -34,6 +45,7 @@ export default function UserDetailPage() {
   const isSelf = user?.userId === detailUser?.userId
 
   useEffect(() => {
+    /** 対象ユーザーの詳細情報を API から取得してフォームに反映する */
     const loadUser = async () => {
       if (!targetUserId) {
         setIsLoading(false)
@@ -62,6 +74,11 @@ export default function UserDetailPage() {
     void loadUser()
   }, [targetUserId])
 
+  /**
+   * ユーザー情報更新フォームの送信ハンドラ。
+   * 入力内容でユーザー情報を更新する。
+   * @param event - フォーム送信イベント
+   */
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!targetUserId) return
@@ -88,6 +105,11 @@ export default function UserDetailPage() {
     await alert.success('ユーザー情報を更新しました。')
   }
 
+  /**
+   * パスワード初期化ボタンのクリックハンドラ。
+   * 確認ダイアログを表示してからパスワードを初期化し、
+   * 初期パスワードをクリップボードへコピーしてログアウトする。
+   */
   const handleResetPassword = async () => {
     const confirmed = await alert.confirm('パスワードを初期化しますか？')
     if (!confirmed) return

@@ -6,9 +6,18 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
+/**
+ * ホーム画面コンポーネント。
+ * ログイン中ユーザーの基本情報（表示名・メール・ロール）を表示する。
+ * ユーザー管理権限を持つ場合はユーザー一覧へのリンクを表示する。
+ */
 export default function HomePage() {
   const { user, logout } = useAuth()
 
+  /**
+   * ログアウトボタンのクリックハンドラ。
+   * 確認ダイアログを表示してからログアウト API を呼び出す。
+   */
   const handleLogout = async () => {
     const confirmed = await alert.confirm('ログアウトしますか？')
     if (confirmed) {

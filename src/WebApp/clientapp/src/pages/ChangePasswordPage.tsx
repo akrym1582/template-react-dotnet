@@ -6,12 +6,22 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
+/**
+ * パスワード変更ページコンポーネント。
+ * 初回ログイン時など `mustChangePassword` が `true` の場合に表示される。
+ * 新しいパスワードと確認用パスワードを入力してパスワードを変更する。
+ */
 export default function ChangePasswordPage() {
   const { changePassword } = useAuth()
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  /**
+   * フォーム送信ハンドラ。
+   * 確認用パスワードの一致を検証し、パスワード変更 API を呼び出す。
+   * @param event - フォーム送信イベント
+   */
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (isSubmitting) return
