@@ -17,33 +17,33 @@ export function useAuth() {
   )
 
   const login = async (email: string, password: string) => {
-    const json = await authApiNoThrow.login.$post({
+    const response = await authApiNoThrow.login.$post({
       body: { email, password },
     })
-    if (json.success) {
+    if (response.success) {
       await mutate()
     }
-    return json
+    return response
   }
 
   const testLogin = async (userId: string) => {
-    const json = await authApiNoThrow.test_login.$post({
+    const response = await authApiNoThrow.test_login.$post({
       body: { userId },
     })
-    if (json.success) {
+    if (response.success) {
       await mutate()
     }
-    return json
+    return response
   }
 
   const entraLogin = async (idToken: string) => {
-    const json = await authApiNoThrow.entra_login.$post({
+    const response = await authApiNoThrow.entra_login.$post({
       body: { idToken },
     })
-    if (json.success) {
+    if (response.success) {
       await mutate()
     }
-    return json
+    return response
   }
 
   const logout = async () => {
@@ -52,13 +52,13 @@ export function useAuth() {
   }
 
   const changePassword = async (newPassword: string) => {
-    const json = await authApiNoThrow.change_password.$post({
+    const response = await authApiNoThrow.change_password.$post({
       body: { newPassword },
     })
-    if (json.success) {
+    if (response.success) {
       await mutate()
     }
-    return json
+    return response
   }
 
   const resetPassword = async () => {

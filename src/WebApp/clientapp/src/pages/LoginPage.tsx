@@ -23,15 +23,15 @@ export default function LoginPage() {
     let isMounted = true
 
     const loadTestLoginUsers = async () => {
-      const response = await authApi.test_users.get()
+      const result = await authApi.test_users.get()
 
-      if (!response.originalResponse.ok) {
+      if (!result.originalResponse.ok) {
         return
       }
 
-      const json = response.body
-      if (isMounted && json.success) {
-        setTestLoginUsers(json.data ?? [])
+      const response = result.body
+      if (isMounted && response.success) {
+        setTestLoginUsers(response.data ?? [])
       }
     }
 
