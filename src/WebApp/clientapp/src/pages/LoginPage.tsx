@@ -4,13 +4,14 @@ import api from '@/api/$api'
 import type { TestLoginUserDto } from '@/hooks/useAuth'
 import { useAuth } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
+import { asApiResponse } from '@/lib/apiResponse'
 import { aspidaClientNoThrow } from '@/lib/aspida'
 import { notifyInitialPassword } from '@/lib/password'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-const authApi = api(aspidaClientNoThrow).auth
+const authApi = api(aspidaClientNoThrow).api.Auth
 
 export default function LoginPage() {
   const { login, testLogin, resetPasswordByCredentials } = useAuth()
@@ -29,7 +30,7 @@ export default function LoginPage() {
         return
       }
 
-      const response = result.body
+      const response = asApiResponse<TestLoginUserDto[]>(result.body)
       if (isMounted && response.success) {
         setTestLoginUsers(response.data ?? [])
       }

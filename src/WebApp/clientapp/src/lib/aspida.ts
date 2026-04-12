@@ -4,7 +4,7 @@ const XSRF_COOKIE_NAME = 'XSRF-TOKEN'
 const XSRF_HEADER_NAME = 'X-XSRF-TOKEN'
 
 const fetchConfig = {
-  baseURL: '/api',
+  baseURL: '',
   credentials: 'same-origin' as const,
   throwHttpErrors: true,
 }

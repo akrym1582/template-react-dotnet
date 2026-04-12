@@ -79,6 +79,8 @@ cd src/WebApp/clientapp
 npm run generate-api
 ```
 
+`generate-api` は `src/api` を再生成し、SPA プロキシに吸われない `/api/openapi/v1.json` を参照します。
+
 ### テスト実行
 ```bash
 dotnet test
