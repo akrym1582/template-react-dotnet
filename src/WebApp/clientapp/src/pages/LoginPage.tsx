@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
+import api from '@/api/$api'
 import type { TestLoginUserDto } from '@/hooks/useAuth'
 import { useAuth } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
-import { apiFetch } from '@/lib/aspida'
+import { aspidaClientNoThrowHttpErrors } from '@/lib/aspida'
 import { notifyInitialPassword } from '@/lib/password'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+const authApi = api(aspidaClientNoThrowHttpErrors).auth
 
 export default function LoginPage() {
   const { login, testLogin, resetPasswordByCredentials } = useAuth()
@@ -20,19 +23,21 @@ export default function LoginPage() {
     let isMounted = true
 
     const loadTestLoginUsers = async () => {
-      const res = await apiFetch('/api/auth/test-users')
+      const response = await authApi.test_users.get()
 
-      if (!res.ok) {
+      if (!response.originalResponse.ok) {
         return
       }
 
-      const json: { success: boolean; data?: TestLoginUserDto[] } = await res.json()
+      const json = response.body
       if (isMounted && json.success) {
         setTestLoginUsers(json.data ?? [])
       }
     }
 
-    void loadTestLoginUsers()
+    void loadTestLoginUsers().catch(() => {
+      setTestLoginUsers([])
+    })
 
     return () => {
       isMounted = false

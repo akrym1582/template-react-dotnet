@@ -44,6 +44,10 @@ export const apiFetch: typeof fetch = (input, init) => {
 }
 
 export const aspidaClient = aspida(apiFetch, fetchConfig)
+export const aspidaClientNoThrowHttpErrors = aspida(apiFetch, {
+  ...fetchConfig,
+  throwHttpErrors: false,
+})
 
 type JsonGetApi<T> = {
   $get: (_option?: object) => Promise<T>

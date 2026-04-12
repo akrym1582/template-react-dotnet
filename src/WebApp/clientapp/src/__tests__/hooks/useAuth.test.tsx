@@ -1,9 +1,12 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { SWRConfig } from 'swr'
+import api from '@/api/$api'
 import { useAuth } from '@/hooks/useAuth'
+import { aspidaClient } from '@/lib/aspida'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
+const authApi = api(aspidaClient).auth
 
 const mockUser = {
   userId: 'user-1',
@@ -53,7 +56,7 @@ describe('useAuth', () => {
       expect(result.current.user).toEqual(mockUser)
       expect(result.current.isError).toBe(false)
       expect(mockFetch).toHaveBeenCalledWith(
-        '/api/auth/me',
+        authApi.me.$path(),
         expect.objectContaining({ credentials: 'same-origin' }),
       )
     })
@@ -133,9 +136,22 @@ describe('useAuth', () => {
       expect(loginCall).toBeDefined()
       expect(loginCall![1]).toMatchObject({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json;charset=utf-8' },
         credentials: 'same-origin',
       })
+    })
+
+    it('401 の場合も失敗レスポンスを返す', async () => {
+      mockFetch
+        .mockResolvedValueOnce(createJsonResponse(failureResponse))
+        .mockResolvedValueOnce(
+          createJsonResponse(failureResponse, { ok: false, status: 401, statusText: 'Unauthorized' }),
+        )
+
+      const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      await expect(result.current.login('test@example.com', 'wrong')).resolves.toEqual(failureResponse)
     })
   })
 
@@ -165,7 +181,7 @@ describe('useAuth', () => {
       expect(testLoginCall).toBeDefined()
       expect(testLoginCall![1]).toMatchObject({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json;charset=utf-8' },
         credentials: 'same-origin',
         body: JSON.stringify({ userId: 'test-user' }),
       })
@@ -209,7 +225,7 @@ describe('useAuth', () => {
       expect(changePasswordCall).toBeDefined()
       expect(changePasswordCall![1]).toMatchObject({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json;charset=utf-8' },
         credentials: 'same-origin',
         body: JSON.stringify({ newPassword: 'NewPass@123' }),
       })
