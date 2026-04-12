@@ -6,6 +6,13 @@ import UserListPage from '@/pages/UserListPage'
 import UserDetailPage from '@/pages/UserDetailPage'
 import ChangePasswordPage from '@/pages/ChangePasswordPage'
 
+/**
+ * アプリケーションのルートコンポーネント。
+ * 認証状態に応じてルーティングを制御する。
+ * - 未ログイン: ログインページのみ表示
+ * - 初回パスワード変更必須: パスワード変更ページのみ表示
+ * - ログイン済み: 通常のルーティングを適用
+ */
 function App() {
   const { user, isLoading } = useAuth()
 

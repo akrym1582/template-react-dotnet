@@ -13,6 +13,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 const authApi = api(aspidaClientNoThrow).api.Auth
 
+/**
+ * ログインページコンポーネント。
+ * メールアドレスとパスワードによるログインフォームを表示する。
+ * 開発環境ではテストログインユーザー一覧も表示する。
+ * Azure Entra ID によるログインボタンも配置するが現在は無効。
+ */
 export default function LoginPage() {
   const { login, testLogin, resetPasswordByCredentials } = useAuth()
   const [email, setEmail] = useState('')
@@ -23,6 +29,7 @@ export default function LoginPage() {
   useEffect(() => {
     let isMounted = true
 
+    /** テストログイン可能なユーザー一覧を API から取得する */
     const loadTestLoginUsers = async () => {
       const result = await authApi.test_users.get()
 
@@ -47,6 +54,11 @@ export default function LoginPage() {
     }
   }, [])
 
+  /**
+   * ログインフォームの送信ハンドラ。
+   * 入力されたメールアドレスとパスワードでログイン API を呼び出す。
+   * @param e - フォーム送信イベント
+   */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (isSubmitting) return
@@ -62,6 +74,11 @@ export default function LoginPage() {
     }
   }
 
+  /**
+   * テストログインボタンのクリックハンドラ。
+   * 指定したユーザー ID でテストログイン API を呼び出す（開発環境専用）。
+   * @param userId - テストログインするユーザー ID
+   */
   const handleTestLogin = async (userId: string) => {
     if (isSubmitting) return
 
@@ -76,6 +93,11 @@ export default function LoginPage() {
     }
   }
 
+  /**
+   * パスワード初期化ボタンのクリックハンドラ。
+   * 入力されたメールアドレスと現在のパスワードでパスワードを初期化し、
+   * 初期パスワードをクリップボードへコピーする。
+   */
   const handleResetPassword = async () => {
     if (isSubmitting) return
 
