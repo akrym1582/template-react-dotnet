@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Repository;
 using Shared.Services;
+using WebApp.OpenApi;
 using WebApp.Options;
 using WebApp.Security;
+using WebApp.Spa;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,7 +92,7 @@ var app = builder.Build();
 // --- Pipeline ---
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi(OpenApiRoutes.ApiDocumentPath);
 }
 
 app.UseStaticFiles();
@@ -102,14 +104,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseSpa(spa =>
-{
-    spa.Options.SourcePath = "clientapp";
-
-    if (app.Environment.IsDevelopment())
+app.UseWhen(
+    context => SpaProxyPathFilter.ShouldProxy(context.Request.Path),
+    spaApp => spaApp.UseSpa(spa =>
     {
-        spa.UseProxyToSpaDevelopmentServer("http://localhost:5173");
-    }
-});
+        spa.Options.SourcePath = "clientapp";
+
+        if (app.Environment.IsDevelopment())
+        {
+            spa.UseProxyToSpaDevelopmentServer("http://localhost:5173");
+        }
+    }));
 
 app.Run();

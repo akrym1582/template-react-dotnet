@@ -23,7 +23,7 @@ const mockUseAuth = vi.mocked(useAuth)
 const mockAlert = vi.mocked(alert)
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
-const authApi = api(aspidaClient).auth
+const authApi = api(aspidaClient).api.Auth
 
 const mockLogin = vi.fn()
 const mockTestLogin = vi.fn()

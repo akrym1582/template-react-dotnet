@@ -1,9 +1,0 @@
-import type { DefineMethods } from 'aspida'
-import type { ApiResponse, UserDto } from '../_types'
-
-export type Methods = DefineMethods<{
-  get: {
-    resBody: ApiResponse<UserDto>
-    status: 200
-  }
-}>

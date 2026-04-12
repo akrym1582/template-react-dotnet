@@ -6,7 +6,7 @@ import { aspidaClient } from '@/lib/aspida'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
-const authApi = api(aspidaClient).auth
+const authApi = api(aspidaClient).api.Auth
 
 const mockUser = {
   userId: 'user-1',

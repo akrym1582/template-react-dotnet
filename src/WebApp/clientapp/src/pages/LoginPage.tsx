@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-const authApi = api(aspidaClientNoThrow).auth
+const authApi = api(aspidaClientNoThrow).api.Auth
 
 export default function LoginPage() {
   const { login, testLogin, resetPasswordByCredentials } = useAuth()
@@ -29,7 +29,7 @@ export default function LoginPage() {
         return
       }
 
-      const response = result.body
+      const response = result.body as { success: boolean; data?: TestLoginUserDto[] | null }
       if (isMounted && response.success) {
         setTestLoginUsers(response.data ?? [])
       }
