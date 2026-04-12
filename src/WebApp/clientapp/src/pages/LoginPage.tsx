@@ -36,7 +36,9 @@ export default function LoginPage() {
     }
 
     void loadTestLoginUsers().catch(() => {
-      setTestLoginUsers([])
+      if (isMounted) {
+        setTestLoginUsers([])
+      }
     })
 
     return () => {

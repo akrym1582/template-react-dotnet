@@ -156,6 +156,7 @@ describe('useAuth', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       await expect(result.current.login('test@example.com', 'wrong')).resolves.toEqual(failureResponse)
+      expect(result.current.user).toBeUndefined()
     })
   })
 
