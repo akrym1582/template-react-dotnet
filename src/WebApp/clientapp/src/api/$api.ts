@@ -12,7 +12,7 @@ import type { Methods as Methods_xzne74 } from './api/User';
 import type { Methods as Methods_10ziil1 } from './api/User/_userId@string';
 
 const api = <T>({ baseURL, fetch }: AspidaClient<T>) => {
-  const prefix = (baseURL === undefined ? 'http://localhost:5000/' : baseURL).replace(/\/$/, '');
+  const prefix = (baseURL === undefined ? '' : baseURL).replace(/\/$/, '');
   const PATH0 = '/api/Auth/change-password';
   const PATH1 = '/api/Auth/entra-login';
   const PATH2 = '/api/Auth/login';

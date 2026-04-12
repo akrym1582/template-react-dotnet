@@ -79,7 +79,14 @@ builder.Services.AddAuthorization();
 
 // --- Controllers & OpenAPI ---
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        document.Servers = [];
+        return Task.CompletedTask;
+    });
+});
 
 // --- SPA static files ---
 builder.Services.AddSpaStaticFiles(config =>

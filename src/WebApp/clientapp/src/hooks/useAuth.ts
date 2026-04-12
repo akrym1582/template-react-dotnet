@@ -2,14 +2,9 @@ import useAspidaSWR from '@aspida/swr'
 import api from '@/api/$api'
 import type { PasswordResetResultDto, UserDto } from '@/api/@types'
 import { aspidaClient, aspidaClientNoThrow } from '@/lib/aspida'
+import { asApiResponse } from '@/lib/apiResponse'
 
 export type { PasswordResetResultDto, TestLoginUserDto, UserDto } from '@/api/@types'
-
-type ApiResponse<T> = {
-  success: boolean
-  data?: T | null
-  message?: string | null
-}
 
 const authApi = api(aspidaClient).api.Auth
 const authApiNoThrow = api(aspidaClientNoThrow).api.Auth
@@ -24,9 +19,9 @@ export function useAuth() {
   )
 
   const login = async (email: string, password: string) => {
-    const response = (await authApiNoThrow.login.$post({
+    const response = asApiResponse<UserDto>(await authApiNoThrow.login.$post({
       body: { email, password },
-    })) as ApiResponse<UserDto>
+    }))
     if (response.success) {
       await mutate()
     }
@@ -34,9 +29,9 @@ export function useAuth() {
   }
 
   const testLogin = async (userId: string) => {
-    const response = (await authApiNoThrow.test_login.$post({
+    const response = asApiResponse<UserDto>(await authApiNoThrow.test_login.$post({
       body: { userId },
-    })) as ApiResponse<UserDto>
+    }))
     if (response.success) {
       await mutate()
     }
@@ -44,9 +39,9 @@ export function useAuth() {
   }
 
   const entraLogin = async (idToken: string) => {
-    const response = (await authApiNoThrow.entra_login.$post({
+    const response = asApiResponse<UserDto>(await authApiNoThrow.entra_login.$post({
       body: { idToken },
-    })) as ApiResponse<UserDto>
+    }))
     if (response.success) {
       await mutate()
     }
@@ -59,9 +54,9 @@ export function useAuth() {
   }
 
   const changePassword = async (newPassword: string) => {
-    const response = (await authApiNoThrow.change_password.$post({
+    const response = asApiResponse<UserDto>(await authApiNoThrow.change_password.$post({
       body: { newPassword },
-    })) as ApiResponse<UserDto>
+    }))
     if (response.success) {
       await mutate()
     }
@@ -69,13 +64,13 @@ export function useAuth() {
   }
 
   const resetPassword = async () => {
-    return (await authApiNoThrow.reset_password.$post()) as ApiResponse<PasswordResetResultDto>
+    return asApiResponse<PasswordResetResultDto>(await authApiNoThrow.reset_password.$post())
   }
 
   const resetPasswordByCredentials = async (email: string, currentPassword: string) => {
-    return (await authApiNoThrow.reset_password_by_credentials.$post({
+    return asApiResponse<PasswordResetResultDto>(await authApiNoThrow.reset_password_by_credentials.$post({
       body: { email, currentPassword },
-    })) as ApiResponse<PasswordResetResultDto>
+    }))
   }
 
   return {

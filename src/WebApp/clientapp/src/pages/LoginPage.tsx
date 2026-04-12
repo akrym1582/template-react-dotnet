@@ -4,6 +4,7 @@ import api from '@/api/$api'
 import type { TestLoginUserDto } from '@/hooks/useAuth'
 import { useAuth } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
+import { asApiResponse } from '@/lib/apiResponse'
 import { aspidaClientNoThrow } from '@/lib/aspida'
 import { notifyInitialPassword } from '@/lib/password'
 import { Button } from '@/components/ui/button'
@@ -29,7 +30,7 @@ export default function LoginPage() {
         return
       }
 
-      const response = result.body as { success: boolean; data?: TestLoginUserDto[] | null }
+      const response = asApiResponse<TestLoginUserDto[]>(result.body)
       if (isMounted && response.success) {
         setTestLoginUsers(response.data ?? [])
       }
