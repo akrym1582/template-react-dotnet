@@ -32,6 +32,7 @@ React 19 + ASP.NET 10 フルスタックテンプレートプロジェクト
 
 ### バックエンド
 - **ASP.NET 10** - Web API
+- **SpaProxy** - 開発時の SPA 起動/リダイレクト
 - **Azure Table Storage** - ユーザー情報管理
 - **Azure Blob Storage** / **Queue Storage** / **Cosmos DB** - インフラ
 - **Cookie認証** + **Azure Entra ID** (JWT → Cookie)
@@ -60,6 +61,8 @@ cd src/WebApp
 dotnet run
 ```
 
+開発環境では SpaProxy が `clientapp` の Vite 開発サーバー (`http://localhost:5173`) を利用します。
+
 ### フロントエンド起動 (開発サーバー)
 ```bash
 cd src/WebApp/clientapp
@@ -67,8 +70,8 @@ npm install
 npm run dev
 ```
 
-WebApp (ポート5000) が Vite 開発サーバー (ポート5173) にプロキシ転送します。
-同一ドメインでクライアントとAPIが動作します。
+`dotnet run` で WebApp を起動した状態から `http://localhost:5000` にアクセスすると、SpaProxy が Vite 開発サーバーへリダイレクトします。
+開発時の API リクエストは Vite 側が `/api` を WebApp (ポート5000) にプロキシ転送します。
 API フェッチ時は原則 `credentials: 'same-origin'` で Cookie 認証情報を送信します。
 クライアント共通モジュールが `XSRF-TOKEN` cookie を自動で `X-XSRF-TOKEN` ヘッダーに付与するため、通常の API 呼び出しでは個別対応は不要です。
 
@@ -79,7 +82,7 @@ cd src/WebApp/clientapp
 npm run generate-api
 ```
 
-`generate-api` は `src/api` を再生成し、SPA プロキシに吸われない `/api/openapi/v1.json` を参照します。
+`generate-api` は `src/api` を再生成し、WebApp が公開する `/api/openapi/v1.json` を参照します。
 
 ### テスト実行
 ```bash
