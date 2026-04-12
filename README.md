@@ -35,6 +35,7 @@ React 19 + ASP.NET 10 フルスタックテンプレートプロジェクト
 - **Azure Table Storage** - ユーザー情報管理
 - **Azure Blob Storage** / **Queue Storage** / **Cosmos DB** - インフラ
 - **Cookie認証** + **Azure Entra ID** (JWT → Cookie)
+- **NuGet Central Package Management** - `Directory.Packages.props` で .NET パッケージ バージョンを一元管理
 - **XSRF 対策** - ログイン時にトークン cookie を発行し、以降の API リクエストで `X-XSRF-TOKEN` を検証
 
 ### フロントエンド
