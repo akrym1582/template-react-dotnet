@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import type { UserDto } from '@/hooks/useAuth'
 import { alert } from '@/lib/alert'
+import { apiFetch } from '@/lib/aspida'
 import { notifyInitialPassword } from '@/lib/password'
 import { canManageUsers, formatRole, roleOptions } from '@/lib/user'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -37,7 +38,7 @@ export default function UserListPage() {
   const loadUsers = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/user', { credentials: 'same-origin' })
+      const response = await apiFetch('/api/user')
       const json: ApiResponse<UserListResponseDto> = await response.json()
 
       if (!json.success) {
@@ -85,10 +86,9 @@ export default function UserListPage() {
   const handleCreate = async (event: FormEvent) => {
     event.preventDefault()
 
-    const response = await fetch('/api/user', {
+    const response = await apiFetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
       body: JSON.stringify({
         email: createEmail,
         displayName: createDisplayName,
