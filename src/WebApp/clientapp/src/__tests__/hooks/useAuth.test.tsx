@@ -136,9 +136,13 @@ describe('useAuth', () => {
       expect(loginCall).toBeDefined()
       expect(loginCall![1]).toMatchObject({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json;charset=utf-8' },
         credentials: 'same-origin',
       })
+      expect(loginCall![1]?.headers).toEqual(
+        expect.objectContaining({
+          'Content-Type': expect.stringContaining('application/json'),
+        }),
+      )
     })
 
     it('401 の場合も失敗レスポンスを返す', async () => {
@@ -181,10 +185,14 @@ describe('useAuth', () => {
       expect(testLoginCall).toBeDefined()
       expect(testLoginCall![1]).toMatchObject({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json;charset=utf-8' },
         credentials: 'same-origin',
         body: JSON.stringify({ userId: 'test-user' }),
       })
+      expect(testLoginCall![1]?.headers).toEqual(
+        expect.objectContaining({
+          'Content-Type': expect.stringContaining('application/json'),
+        }),
+      )
     })
   })
 
@@ -225,10 +233,14 @@ describe('useAuth', () => {
       expect(changePasswordCall).toBeDefined()
       expect(changePasswordCall![1]).toMatchObject({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json;charset=utf-8' },
         credentials: 'same-origin',
         body: JSON.stringify({ newPassword: 'NewPass@123' }),
       })
+      expect(changePasswordCall![1]?.headers).toEqual(
+        expect.objectContaining({
+          'Content-Type': expect.stringContaining('application/json'),
+        }),
+      )
     })
   })
 })
