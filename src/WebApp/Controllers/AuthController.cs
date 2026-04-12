@@ -45,9 +45,6 @@ public class AuthController : ControllerBase
         _xsrfTokenCookieService = xsrfTokenCookieService;
     }
 
-    private IUserService UserService =>
-        _userService.Value;
-
     /// <summary>
     /// メールアドレスとパスワードでログインし、クッキーセッションを発行する。
     /// </summary>
@@ -56,7 +53,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> Login([FromBody] LoginRequestDto request)
     {
-        var user = await UserService.ValidateCredentialsAsync(request.Email, request.Password);
+        var user = await GetUserService().ValidateCredentialsAsync(request.Email, request.Password);
         if (user is null)
         {
             return Unauthorized(new ApiResponseDto(false, "メールアドレスまたはパスワードが正しくありません。"));
@@ -137,7 +134,7 @@ public class AuthController : ControllerBase
             return BadRequest(new ApiResponseDto(false, "トークンに必要な情報が含まれていません。"));
         }
 
-        var user = await UserService.GetOrCreateEntraUserAsync(oid, email, name ?? email);
+        var user = await GetUserService().GetOrCreateEntraUserAsync(oid, email, name ?? email);
         await SignInAsync(user);
 
         return Ok(new ApiResponseDto<UserDto>(true, user));
@@ -175,7 +172,7 @@ public class AuthController : ControllerBase
             return Ok(new ApiResponseDto<UserDto>(true, ToTestLoginUserDto(configuredUser)));
         }
 
-        var user = await UserService.GetByIdAsync(userId);
+        var user = await GetUserService().GetByIdAsync(userId);
 
         if (user is null)
         {
@@ -194,7 +191,7 @@ public class AuthController : ControllerBase
     [HttpPost("change-password")]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> ChangePassword([FromBody] ChangePasswordRequestDto request)
     {
-        var validationMessage = await UserService.ValidatePasswordPolicyAsync(request.NewPassword);
+        var validationMessage = await GetUserService().ValidatePasswordPolicyAsync(request.NewPassword);
         if (validationMessage is not null)
         {
             return BadRequest(new ApiResponseDto(false, validationMessage));
@@ -206,7 +203,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new ApiResponseDto(false, "認証情報を確認できません。"));
         }
 
-        var user = await UserService.ChangePasswordAsync(userId, request.NewPassword);
+        var user = await GetUserService().ChangePasswordAsync(userId, request.NewPassword);
         if (user is null)
         {
             return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
@@ -230,7 +227,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new ApiResponseDto(false, "認証情報を確認できません。"));
         }
 
-        var resetResult = await UserService.ResetPasswordAsync(userId);
+        var resetResult = await GetUserService().ResetPasswordAsync(userId);
         if (resetResult is null)
         {
             return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
@@ -250,13 +247,13 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<ApiResponseDto<PasswordResetResultDto>>> ResetPasswordByCredentials(
         [FromBody] ResetPasswordByCredentialsRequestDto request)
     {
-        var user = await UserService.ValidateCredentialsAsync(request.Email, request.CurrentPassword);
+        var user = await GetUserService().ValidateCredentialsAsync(request.Email, request.CurrentPassword);
         if (user is null)
         {
             return Unauthorized(new ApiResponseDto(false, "メールアドレスまたはパスワードが正しくありません。"));
         }
 
-        var resetResult = await UserService.ResetPasswordAsync(user.UserId);
+        var resetResult = await GetUserService().ResetPasswordAsync(user.UserId);
         if (resetResult is null)
         {
             return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
@@ -278,6 +275,9 @@ public class AuthController : ControllerBase
             IsActive: true,
             MustChangePassword: false);
     }
+
+    private IUserService GetUserService() =>
+        _userService.Value;
 
     private async Task SignInAsync(UserDto user)
     {

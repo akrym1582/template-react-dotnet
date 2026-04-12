@@ -37,7 +37,7 @@ React 19 + ASP.NET 10 フルスタックテンプレートプロジェクト
 - **Azure Blob Storage** / **Queue Storage** / **Cosmos DB** - インフラ
 - **Cookie認証** + **Azure Entra ID** (JWT → Cookie)
 - **NuGet Central Package Management** - `Directory.Packages.props` で .NET パッケージ バージョンを一元管理
-- **StyleCop.Analyzers** - C# コーディング規約を共通化（`SA1101` / `SA1200` / `SA1309` / `SA1629` / `SA1633` は無効化）
+- **StyleCop.Analyzers** - C# コーディング規約を共通化（`SA1101` / `SA1200` / `SA1309` / `SA1629` / `SA1633`、および同名の generic / non-generic DTO 対応のため `SA1649` を無効化）
 - **XSRF 対策** - ログイン時にトークン cookie を発行し、以降の API リクエストで `X-XSRF-TOKEN` を検証
 
 ### フロントエンド

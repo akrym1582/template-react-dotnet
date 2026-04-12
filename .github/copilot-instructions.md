@@ -127,7 +127,7 @@ builder.Services.AddSingleton<IUserService, UserService>();
 
 - .NET のパッケージ バージョンはリポジトリ ルートの `Directory.Packages.props` で中央管理する
 - 各 `.csproj` の `PackageReference` には `Version` を直書きしない
-- C# プロジェクトには `StyleCop.Analyzers` を共通適用し、`SA1101` / `SA1200` / `SA1309` / `SA1629` / `SA1633` は無効化する
+- C# プロジェクトには `StyleCop.Analyzers` を共通適用し、`SA1101` / `SA1200` / `SA1309` / `SA1629` / `SA1633`、および同名の generic / non-generic DTO 対応のため `SA1649` は無効化する
 - 開発時の SPA 統合は SpaProxy を使い、`UseSpa` / `UseProxyToSpaDevelopmentServer` は使わず `WebApp.csproj` と `launchSettings.json` で設定する
 
 ---
