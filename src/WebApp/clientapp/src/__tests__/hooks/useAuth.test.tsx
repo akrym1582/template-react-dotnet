@@ -160,6 +160,22 @@ describe('useAuth', () => {
     })
   })
 
+  describe('entraLogin', () => {
+    it('401 の場合も失敗レスポンスを返し user を更新しない', async () => {
+      mockFetch
+        .mockResolvedValueOnce(createJsonResponse(failureResponse))
+        .mockResolvedValueOnce(
+          createJsonResponse(failureResponse, { ok: false, status: 401, statusText: 'Unauthorized' }),
+        )
+
+      const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      await expect(result.current.entraLogin('invalid-token')).resolves.toEqual(failureResponse)
+      expect(result.current.user).toBeUndefined()
+    })
+  })
+
   describe('testLogin', () => {
     it('POST /api/auth/test-login にリクエストを送信する', async () => {
       mockFetch
