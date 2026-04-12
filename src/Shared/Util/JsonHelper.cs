@@ -10,7 +10,7 @@ public static class JsonHelper
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
+        WriteIndented = false,
     };
 
     /// <summary>
@@ -40,7 +40,9 @@ public static class JsonHelper
     public static List<string> DeserializeRoles(string? rolesJson)
     {
         if (string.IsNullOrWhiteSpace(rolesJson))
+        {
             return [Constants.Roles.General];
+        }
 
         return RoleHelper.NormalizeRoles(JsonSerializer.Deserialize<List<string>>(rolesJson, Options)).ToList();
     }

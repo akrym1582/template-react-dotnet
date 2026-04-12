@@ -67,26 +67,26 @@ public class UserControllerTests
         IReadOnlyList<string> roles,
         bool allowUserCreation = true)
     {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, userId),
+        };
+        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
         var controller = new UserController(
             _userService,
             new UserManagementSettings
             {
                 AllowManagerUserCreation = allowUserCreation,
-                InitialPassword = "Init@1234"
+                InitialPassword = "Init@1234",
             });
 
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
             {
-                User = new ClaimsPrincipal(
-                    new ClaimsIdentity(
-                    [
-                        new Claim(ClaimTypes.NameIdentifier, userId),
-                        .. roles.Select(role => new Claim(ClaimTypes.Role, role))
-                    ],
-                    "Test"))
-            }
+                User = new ClaimsPrincipal(new ClaimsIdentity(claims, "Test")),
+            },
         };
 
         return controller;

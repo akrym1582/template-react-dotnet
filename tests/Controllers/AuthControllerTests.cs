@@ -39,9 +39,9 @@ public class AuthControllerTests
                     new TestLoginUserOption
                     {
                         UserId = "test-admin",
-                        Roles = ["privileged", "general"]
-                    }
-                ]
+                        Roles = ["privileged", "general"],
+                    },
+                ],
             });
 
         var result = await controller.TestLogin(new TestLoginRequestDto("test-admin"));
@@ -89,9 +89,9 @@ public class AuthControllerTests
                     new TestLoginUserOption
                     {
                         UserId = "test-user",
-                        Roles = ["general"]
-                    }
-                ]
+                        Roles = ["general"],
+                    },
+                ],
             });
 
         controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(
@@ -139,7 +139,7 @@ public class AuthControllerTests
         {
             RequestServices = new ServiceCollection()
                 .AddSingleton(_authenticationService)
-                .BuildServiceProvider()
+                .BuildServiceProvider(),
         };
 
         return new AuthController(
@@ -150,8 +150,8 @@ public class AuthControllerTests
         {
             ControllerContext = new ControllerContext
             {
-                HttpContext = httpContext
-            }
+                HttpContext = httpContext,
+            },
         };
     }
 }

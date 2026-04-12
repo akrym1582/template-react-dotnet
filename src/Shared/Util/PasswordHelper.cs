@@ -34,7 +34,10 @@ public static class PasswordHelper
     public static bool Verify(string password, string passwordHash)
     {
         var parts = passwordHash.Split(':');
-        if (parts.Length != 2) return false;
+        if (parts.Length != 2)
+        {
+            return false;
+        }
 
         var salt = Convert.FromBase64String(parts[0]);
         var hash = Convert.FromBase64String(parts[1]);

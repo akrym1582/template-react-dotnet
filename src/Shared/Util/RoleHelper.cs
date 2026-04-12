@@ -44,24 +44,36 @@ public static class RoleHelper
     private static string? NormalizeRole(string? role)
     {
         if (string.IsNullOrWhiteSpace(role))
+        {
             return null;
+        }
 
         var normalizedRole = role.Trim();
 
         if (string.Equals(normalizedRole, "user", StringComparison.OrdinalIgnoreCase))
+        {
             return Constants.Roles.General;
+        }
 
         if (string.Equals(normalizedRole, "admin", StringComparison.OrdinalIgnoreCase))
+        {
             return Constants.Roles.Privileged;
+        }
 
         if (string.Equals(normalizedRole, Constants.Roles.General, StringComparison.OrdinalIgnoreCase))
+        {
             return Constants.Roles.General;
+        }
 
         if (string.Equals(normalizedRole, Constants.Roles.Manager, StringComparison.OrdinalIgnoreCase))
+        {
             return Constants.Roles.Manager;
+        }
 
         if (string.Equals(normalizedRole, Constants.Roles.Privileged, StringComparison.OrdinalIgnoreCase))
+        {
             return Constants.Roles.Privileged;
+        }
 
         return null;
     }

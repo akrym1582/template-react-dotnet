@@ -26,8 +26,8 @@ public class UserServiceTests
                     RequireUppercase = true,
                     RequireLowercase = true,
                     RequireDigit = true,
-                    RequireSpecialCharacter = true
-                }
+                    RequireSpecialCharacter = true,
+                },
             });
     }
 
@@ -171,12 +171,12 @@ public class UserServiceTests
             RowKey = id,
             Email = email,
             DisplayName = displayName,
-            PasswordHash = "",
+            PasswordHash = string.Empty,
             StoreCode = "001",
             StoreName = "本店",
             RolesJson = JsonHelper.SerializeRoles([Constants.Roles.General]),
             IsActive = true,
             MustChangePassword = false,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
         };
 }

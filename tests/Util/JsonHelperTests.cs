@@ -32,7 +32,7 @@ public class JsonHelperTests
     [Fact]
     public void DeserializeRoles_WithEmptyString_ReturnsGeneralRole()
     {
-        var roles = JsonHelper.DeserializeRoles("");
+        var roles = JsonHelper.DeserializeRoles(string.Empty);
         Assert.Equal(["general"], roles);
     }
 

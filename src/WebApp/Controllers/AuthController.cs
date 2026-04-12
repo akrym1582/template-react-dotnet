@@ -53,9 +53,11 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> Login([FromBody] LoginRequestDto request)
     {
-        var user = await UserService.ValidateCredentialsAsync(request.Email, request.Password);
+        var user = await GetUserService().ValidateCredentialsAsync(request.Email, request.Password);
         if (user is null)
+        {
             return Unauthorized(new ApiResponseDto(false, "メールアドレスまたはパスワードが正しくありません。"));
+        }
 
         await SignInAsync(user);
         return Ok(new ApiResponseDto<UserDto>(true, user));
@@ -70,7 +72,9 @@ public class AuthController : ControllerBase
     public ActionResult<ApiResponseDto<IReadOnlyList<TestLoginUserDto>>> GetTestUsers()
     {
         if (!_environment.IsDevelopment())
+        {
             return Ok(new ApiResponseDto<IReadOnlyList<TestLoginUserDto>>(true, []));
+        }
 
         var users = _testLoginOptions.Users
             .Where(user => !string.IsNullOrWhiteSpace(user.UserId))
@@ -89,11 +93,15 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<ApiResponseDto<UserDto>>> TestLogin([FromBody] TestLoginRequestDto request)
     {
         if (!_environment.IsDevelopment())
+        {
             return NotFound(new ApiResponseDto(false, "テストログインは開発環境でのみ利用できます。"));
+        }
 
         var configuredUser = FindTestLoginUser(request.UserId);
         if (configuredUser is null)
+        {
             return Unauthorized(new ApiResponseDto(false, "テストログインユーザーが見つかりません。"));
+        }
 
         var user = ToTestLoginUserDto(configuredUser);
         await SignInAsync(user);
@@ -112,7 +120,9 @@ public class AuthController : ControllerBase
         var handler = new JwtSecurityTokenHandler();
 
         if (!handler.CanReadToken(request.IdToken))
+        {
             return BadRequest(new ApiResponseDto(false, "無効なトークンです。"));
+        }
 
         var jwt = handler.ReadJwtToken(request.IdToken);
         var oid = jwt.Claims.FirstOrDefault(c => c.Type == "oid")?.Value;
@@ -120,9 +130,11 @@ public class AuthController : ControllerBase
         var name = jwt.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
 
         if (string.IsNullOrEmpty(oid) || string.IsNullOrEmpty(email))
+        {
             return BadRequest(new ApiResponseDto(false, "トークンに必要な情報が含まれていません。"));
+        }
 
-        var user = await UserService.GetOrCreateEntraUserAsync(oid, email, name ?? email);
+        var user = await GetUserService().GetOrCreateEntraUserAsync(oid, email, name ?? email);
         await SignInAsync(user);
 
         return Ok(new ApiResponseDto<UserDto>(true, user));
@@ -150,16 +162,22 @@ public class AuthController : ControllerBase
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null)
+        {
             return Unauthorized(new ApiResponseDto(false));
+        }
 
         var configuredUser = FindTestLoginUser(userId);
         if (configuredUser is not null)
+        {
             return Ok(new ApiResponseDto<UserDto>(true, ToTestLoginUserDto(configuredUser)));
+        }
 
-        var user = await UserService.GetByIdAsync(userId);
+        var user = await GetUserService().GetByIdAsync(userId);
 
         if (user is null)
+        {
             return Unauthorized(new ApiResponseDto(false));
+        }
 
         return Ok(new ApiResponseDto<UserDto>(true, user));
     }
@@ -173,17 +191,23 @@ public class AuthController : ControllerBase
     [HttpPost("change-password")]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> ChangePassword([FromBody] ChangePasswordRequestDto request)
     {
-        var validationMessage = await UserService.ValidatePasswordPolicyAsync(request.NewPassword);
+        var validationMessage = await GetUserService().ValidatePasswordPolicyAsync(request.NewPassword);
         if (validationMessage is not null)
+        {
             return BadRequest(new ApiResponseDto(false, validationMessage));
+        }
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null)
+        {
             return Unauthorized(new ApiResponseDto(false, "認証情報を確認できません。"));
+        }
 
-        var user = await UserService.ChangePasswordAsync(userId, request.NewPassword);
+        var user = await GetUserService().ChangePasswordAsync(userId, request.NewPassword);
         if (user is null)
+        {
             return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
+        }
 
         await SignInAsync(user);
         return Ok(new ApiResponseDto<UserDto>(true, user, "パスワードを変更しました。"));
@@ -199,11 +223,15 @@ public class AuthController : ControllerBase
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null)
+        {
             return Unauthorized(new ApiResponseDto(false, "認証情報を確認できません。"));
+        }
 
-        var resetResult = await UserService.ResetPasswordAsync(userId);
+        var resetResult = await GetUserService().ResetPasswordAsync(userId);
         if (resetResult is null)
+        {
             return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
+        }
 
         return Ok(new ApiResponseDto<PasswordResetResultDto>(true, resetResult, "パスワードを初期化しました。"));
     }
@@ -219,16 +247,37 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<ApiResponseDto<PasswordResetResultDto>>> ResetPasswordByCredentials(
         [FromBody] ResetPasswordByCredentialsRequestDto request)
     {
-        var user = await UserService.ValidateCredentialsAsync(request.Email, request.CurrentPassword);
+        var user = await GetUserService().ValidateCredentialsAsync(request.Email, request.CurrentPassword);
         if (user is null)
+        {
             return Unauthorized(new ApiResponseDto(false, "メールアドレスまたはパスワードが正しくありません。"));
+        }
 
-        var resetResult = await UserService.ResetPasswordAsync(user.UserId);
+        var resetResult = await GetUserService().ResetPasswordAsync(user.UserId);
         if (resetResult is null)
+        {
             return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
+        }
 
         return Ok(new ApiResponseDto<PasswordResetResultDto>(true, resetResult, "パスワードを初期化しました。"));
     }
+
+    private static UserDto ToTestLoginUserDto(TestLoginUserOption user)
+    {
+        var userId = user.UserId.Trim();
+        return new UserDto(
+            UserId: userId,
+            Email: $"{userId}@test.local",
+            DisplayName: userId,
+            StoreCode: string.Empty,
+            StoreName: string.Empty,
+            Roles: RoleHelper.NormalizeRoles(user.Roles),
+            IsActive: true,
+            MustChangePassword: false);
+    }
+
+    private IUserService GetUserService() =>
+        _userService.Value;
 
     private async Task SignInAsync(UserDto user)
     {
@@ -253,7 +302,7 @@ public class AuthController : ControllerBase
             new AuthenticationProperties
             {
                 IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7),
             });
 
         _xsrfTokenCookieService.RefreshTokenCookie(HttpContext);
@@ -266,21 +315,4 @@ public class AuthController : ControllerBase
         return _testLoginOptions.Users.FirstOrDefault(
             user => string.Equals(user.UserId?.Trim(), trimmedUserId, StringComparison.Ordinal));
     }
-
-    private static UserDto ToTestLoginUserDto(TestLoginUserOption user)
-    {
-        var userId = user.UserId.Trim();
-        return new UserDto(
-            UserId: userId,
-            Email: $"{userId}@test.local",
-            DisplayName: userId,
-            StoreCode: string.Empty,
-            StoreName: string.Empty,
-            Roles: RoleHelper.NormalizeRoles(user.Roles),
-            IsActive: true,
-            MustChangePassword: false);
-    }
-
-    private IUserService UserService =>
-        _userService.Value;
 }

@@ -49,10 +49,14 @@ public class XsrfValidationMiddleware
     private static bool ShouldValidate(HttpContext context)
     {
         if (context.User.Identity?.IsAuthenticated is not true)
+        {
             return false;
+        }
 
         if (!context.Request.Path.StartsWithSegments(ApiPathPrefix))
+        {
             return false;
+        }
 
         return !IsIgnoredPath(context.Request.Path);
     }

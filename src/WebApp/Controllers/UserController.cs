@@ -38,7 +38,9 @@ public class UserController : ControllerBase
     public async Task<ActionResult<ApiResponseDto<UserListResponseDto>>> GetAll()
     {
         if (!RoleHelper.CanManageUsers(User))
+        {
             return Forbid();
+        }
 
         var users = await _userService.GetAllAsync();
         return Ok(new ApiResponseDto<UserListResponseDto>(
@@ -56,11 +58,15 @@ public class UserController : ControllerBase
     public async Task<ActionResult<ApiResponseDto<UserDto>>> GetById(string userId)
     {
         if (!CanAccessUser(userId))
+        {
             return Forbid();
+        }
 
         var user = await _userService.GetByIdAsync(userId);
         if (user is null)
+        {
             return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
+        }
 
         return Ok(new ApiResponseDto<UserDto>(true, user));
     }
@@ -75,14 +81,20 @@ public class UserController : ControllerBase
     public async Task<ActionResult<ApiResponseDto<CreatedUserResultDto>>> Create([FromBody] CreateUserRequestDto request)
     {
         if (!RoleHelper.CanManageUsers(User))
+        {
             return Forbid();
+        }
 
         if (!_settings.AllowManagerUserCreation)
+        {
             return Forbid();
+        }
 
         var existingUser = await _userService.GetByEmailAsync(request.Email);
         if (existingUser is not null)
+        {
             return BadRequest(new ApiResponseDto(false, "同じメールアドレスのユーザーが存在します。"));
+        }
 
         var user = await _userService.CreateAsync(
             request.Email,
@@ -113,18 +125,26 @@ public class UserController : ControllerBase
         var canManageUsers = RoleHelper.CanManageUsers(User);
 
         if (!isSelf && !canManageUsers)
+        {
             return Forbid();
+        }
 
         if (!canManageUsers && request.Roles is not null)
+        {
             return Forbid();
+        }
 
         var existingUser = await _userService.GetByEmailAsync(request.Email);
         if (existingUser is not null && !string.Equals(existingUser.UserId, userId, StringComparison.OrdinalIgnoreCase))
+        {
             return BadRequest(new ApiResponseDto(false, "同じメールアドレスのユーザーが存在します。"));
+        }
 
         var currentUser = await _userService.GetByIdAsync(userId);
         if (currentUser is null)
+        {
             return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
+        }
 
         var updatedUser = await _userService.UpdateAsync(
             userId,
@@ -135,7 +155,9 @@ public class UserController : ControllerBase
             canManageUsers ? request.Roles : currentUser.Roles);
 
         if (updatedUser is null)
+        {
             return NotFound(new ApiResponseDto(false, "ユーザーが見つかりません。"));
+        }
 
         return Ok(new ApiResponseDto<UserDto>(true, updatedUser, "ユーザー情報を更新しました。"));
     }
@@ -149,7 +171,9 @@ public class UserController : ControllerBase
     public async Task<ActionResult<ApiResponseDto>> Delete(string userId)
     {
         if (!RoleHelper.CanManageUsers(User))
+        {
             return Forbid();
+        }
 
         await _userService.DeleteAsync(userId);
         return Ok(new ApiResponseDto(true, "削除しました。"));

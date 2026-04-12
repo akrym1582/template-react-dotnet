@@ -69,7 +69,7 @@ public class UserService : IUserService
             RolesJson = JsonHelper.SerializeRoles(roleList),
             CreatedAt = DateTime.UtcNow,
             IsActive = true,
-            MustChangePassword = mustChangePassword
+            MustChangePassword = mustChangePassword,
         };
 
         await _repository.UpsertAsync(entity);
@@ -87,7 +87,9 @@ public class UserService : IUserService
     {
         var entity = await _repository.GetByIdAsync(userId);
         if (entity is null)
+        {
             return null;
+        }
 
         entity.Email = email;
         entity.DisplayName = displayName;
@@ -95,7 +97,9 @@ public class UserService : IUserService
         entity.StoreName = storeName;
 
         if (roles is not null)
+        {
             entity.RolesJson = JsonHelper.SerializeRoles(roles);
+        }
 
         await _repository.UpsertAsync(entity);
         return ToDto(entity);
@@ -106,10 +110,14 @@ public class UserService : IUserService
     {
         var entity = await _repository.GetByEmailAsync(email);
         if (entity is null || !entity.IsActive)
+        {
             return null;
+        }
 
         if (!PasswordHelper.Verify(password, entity.PasswordHash))
+        {
             return null;
+        }
 
         entity.LastLoginAt = DateTime.UtcNow;
         await _repository.UpsertAsync(entity);
@@ -139,7 +147,7 @@ public class UserService : IUserService
             EntraObjectId = entraObjectId,
             RolesJson = JsonHelper.SerializeRoles([Constants.Roles.General]),
             CreatedAt = DateTime.UtcNow,
-            IsActive = true
+            IsActive = true,
         };
 
         await _repository.UpsertAsync(entity);
@@ -151,7 +159,9 @@ public class UserService : IUserService
     {
         var entity = await _repository.GetByIdAsync(userId);
         if (entity is null)
+        {
             return null;
+        }
 
         entity.PasswordHash = PasswordHelper.Hash(newPassword);
         entity.MustChangePassword = false;
@@ -165,7 +175,9 @@ public class UserService : IUserService
     {
         var entity = await _repository.GetByIdAsync(userId);
         if (entity is null)
+        {
             return null;
+        }
 
         entity.PasswordHash = PasswordHelper.Hash(_settings.InitialPassword);
         entity.MustChangePassword = true;
