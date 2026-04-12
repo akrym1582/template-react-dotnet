@@ -72,4 +72,32 @@ public class PrecompressedSpaRequestMatcherTests
 
         Assert.False(result);
     }
+
+    [Fact]
+    public void NullパスはApiリクエストとして判定しない()
+    {
+        var result = PrecompressedSpaRequestMatcher.IsApiRequest(default);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void 空文字パスはApiリクエストとして判定しない()
+    {
+        var result = PrecompressedSpaRequestMatcher.IsApiRequest(string.Empty);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void Nullパスのリクエストは探索対象にしない()
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = HttpMethods.Get;
+        httpContext.Request.Path = default;
+
+        var result = PrecompressedSpaRequestMatcher.ShouldTryResolvePrecompressedAsset(httpContext.Request);
+
+        Assert.False(result);
+    }
 }
