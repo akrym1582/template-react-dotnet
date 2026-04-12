@@ -1,40 +1,15 @@
 import useAspidaSWR from '@aspida/swr'
 import api from '@/api/$api'
-import { apiFetch, aspidaClient, createJsonGetApi } from '@/lib/aspida'
+import { aspidaClient, aspidaClientNoThrow } from '@/lib/aspida'
 
-export interface UserDto {
-  userId: string
-  email: string
-  displayName: string
-  storeCode: string
-  storeName: string
-  roles: string[]
-  isActive: boolean
-  mustChangePassword: boolean
-}
-
-export interface TestLoginUserDto {
-  userId: string
-  roles: string[]
-}
-
-export interface PasswordResetResultDto {
-  initialPassword: string
-  mustChangePassword: boolean
-}
-
-interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  message?: string
-}
+export type { PasswordResetResultDto, TestLoginUserDto, UserDto } from '@/api/auth/_types'
 
 const authApi = api(aspidaClient).auth
-const authMeApi = createJsonGetApi<ApiResponse<UserDto>>(authApi.me.$path())
+const authApiNoThrow = api(aspidaClientNoThrow).auth
 
 export function useAuth() {
   const { data, error, isLoading, mutate } = useAspidaSWR(
-    authMeApi,
+    authApi.me,
     {
       revalidateOnFocus: false,
       shouldRetryOnError: false,
@@ -42,78 +17,58 @@ export function useAuth() {
   )
 
   const login = async (email: string, password: string) => {
-    const res = await apiFetch(authApi.login.$path(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+    const response = await authApiNoThrow.login.$post({
+      body: { email, password },
     })
-    const json: ApiResponse<UserDto> = await res.json()
-    if (json.success) {
+    if (response.success) {
       await mutate()
     }
-    return json
+    return response
   }
 
   const testLogin = async (userId: string) => {
-    const res = await apiFetch('/api/auth/test-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId }),
+    const response = await authApiNoThrow.test_login.$post({
+      body: { userId },
     })
-    const json: ApiResponse<UserDto> = await res.json()
-    if (json.success) {
+    if (response.success) {
       await mutate()
     }
-    return json
+    return response
   }
 
   const entraLogin = async (idToken: string) => {
-    const res = await apiFetch(authApi.entra_login.$path(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
+    const response = await authApiNoThrow.entra_login.$post({
+      body: { idToken },
     })
-    const json: ApiResponse<UserDto> = await res.json()
-    if (json.success) {
+    if (response.success) {
       await mutate()
     }
-    return json
+    return response
   }
 
   const logout = async () => {
-    await apiFetch(authApi.logout.$path(), {
-      method: 'POST',
-    })
+    await authApi.logout.$post()
     await mutate(undefined)
   }
 
   const changePassword = async (newPassword: string) => {
-    const res = await apiFetch('/api/auth/change-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ newPassword }),
+    const response = await authApiNoThrow.change_password.$post({
+      body: { newPassword },
     })
-    const json: ApiResponse<UserDto> = await res.json()
-    if (json.success) {
+    if (response.success) {
       await mutate()
     }
-    return json
+    return response
   }
 
   const resetPassword = async () => {
-    const res = await apiFetch('/api/auth/reset-password', {
-      method: 'POST',
-    })
-    return (await res.json()) as ApiResponse<PasswordResetResultDto>
+    return authApiNoThrow.reset_password.$post()
   }
 
   const resetPasswordByCredentials = async (email: string, currentPassword: string) => {
-    const res = await apiFetch('/api/auth/reset-password-by-credentials', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, currentPassword }),
+    return authApiNoThrow.reset_password_by_credentials.$post({
+      body: { email, currentPassword },
     })
-    return (await res.json()) as ApiResponse<PasswordResetResultDto>
   }
 
   return {

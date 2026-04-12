@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import api from '@/api/$api'
 import LoginPage from '@/pages/LoginPage'
+import { aspidaClient } from '@/lib/aspida'
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(),
@@ -21,19 +23,30 @@ const mockUseAuth = vi.mocked(useAuth)
 const mockAlert = vi.mocked(alert)
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
+const authApi = api(aspidaClient).auth
 
 const mockLogin = vi.fn()
 const mockTestLogin = vi.fn()
+const createJsonResponse = <T,>(data: T) => ({
+  ok: true,
+  status: 200,
+  statusText: 'OK',
+  headers: new Headers({ 'content-type': 'application/json' }),
+  json: vi.fn().mockResolvedValue(data),
+  text: vi.fn(),
+  arrayBuffer: vi.fn(),
+  blob: vi.fn(),
+  formData: vi.fn(),
+})
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockFetch.mockResolvedValue({
-    ok: true,
-    json: vi.fn().mockResolvedValue({
+  mockFetch.mockResolvedValue(
+    createJsonResponse({
       success: true,
       data: [{ userId: 'test-user', roles: ['user'] }],
     }),
-  } as never)
+  )
   mockUseAuth.mockReturnValue({
     user: undefined,
     isLoading: false,
@@ -93,6 +106,10 @@ describe('LoginPage', () => {
 
     expect(await screen.findByRole('button', { name: /test-user/i })).toBeInTheDocument()
     expect(screen.getByText('user')).toBeInTheDocument()
+    expect(mockFetch).toHaveBeenCalledWith(
+      authApi.test_users.$path(),
+      expect.objectContaining({ credentials: 'same-origin' }),
+    )
   })
 
   it('テストログインボタン押下時に testLogin を呼び出す', async () => {

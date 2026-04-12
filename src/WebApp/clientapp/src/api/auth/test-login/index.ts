@@ -1,9 +1,9 @@
 import type { DefineMethods } from 'aspida'
-import type { ApiResponse, LoginRequestDto, UserDto } from '../_types'
+import type { ApiResponse, TestLoginRequestDto, UserDto } from '../_types'
 
 export type Methods = DefineMethods<{
   post: {
-    reqBody: LoginRequestDto
+    reqBody: TestLoginRequestDto
     resBody: ApiResponse<UserDto>
     status: 200
   }
