@@ -43,6 +43,7 @@ React 19 + ASP.NET 10 フルスタックテンプレートプロジェクト
 ### フロントエンド
 - **React 19** + **TypeScript**
 - **Vite** - ビルドツール
+- **事前圧縮済み配信** - production build 時に `dist/` 配下へ `.gz` / `.br` を生成し、ASP.NET 側で優先配信
 - **TailwindCSS 4** - スタイリング
 - **shadcn/ui** - UIコンポーネント
 - **oxlint** - リンター
@@ -75,6 +76,15 @@ npm run dev
 開発時の API リクエストは Vite 側が `/api` を WebApp (ポート5000) にプロキシ転送します。
 API フェッチ時は原則 `credentials: 'same-origin'` で Cookie 認証情報を送信します。
 クライアント共通モジュールが `XSRF-TOKEN` cookie を自動で `X-XSRF-TOKEN` ヘッダーに付与するため、通常の API 呼び出しでは個別対応は不要です。
+
+### フロントエンド production ビルド
+```bash
+cd src/WebApp/clientapp
+npm run build
+```
+
+production ビルドでは `dist/` 配下の生成ファイルとあわせて `.gz` / `.br` も出力されます。  
+WebApp の本番静的ファイル配信では、クライアントが Brotli / gzip をサポートしていれば事前圧縮済みファイルをそのまま返します。
 
 ### API クライアント生成 (aspida)
 ```bash

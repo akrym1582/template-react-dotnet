@@ -139,6 +139,7 @@ builder.Services.AddSingleton<IUserService, UserService>();
 | ツール | 用途 |
 |--------|------|
 | Vite | ビルド・開発サーバー |
+| 事前圧縮済み配信 | production build 時に `.gz` / `.br` を生成し、ASP.NET 側で優先配信 |
 | TailwindCSS 4 | スタイリング |
 | shadcn/ui | UI コンポーネント |
 | aspida + @aspida/swr | 型安全 API 呼び出し + データフェッチ |
@@ -228,6 +229,16 @@ npm run generate-api
 ```
 
 aspida が `src/api/` 配下を自動生成するため、このディレクトリは手動編集しない。
+
+### production ビルド
+
+```bash
+cd src/WebApp/clientapp
+npm run build
+```
+
+- production ビルドでは `dist/` 配下に生成ファイル本体と `.gz` / `.br` を出力する
+- ASP.NET 側の本番静的ファイル配信では、`Accept-Encoding` に応じて事前圧縮済みファイルを優先配信する
 
 ---
 

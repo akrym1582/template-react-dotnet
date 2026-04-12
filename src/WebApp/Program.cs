@@ -3,13 +3,13 @@ using Azure.Data.Tables;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Repository;
 using Shared.Services;
 using WebApp.OpenApi;
 using WebApp.Options;
 using WebApp.Security;
+using WebApp.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,13 +106,7 @@ app.MapControllers();
 
 if (!app.Environment.IsDevelopment())
 {
-    var spaStaticFiles = new StaticFileOptions
-    {
-        FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "clientapp", "dist")),
-    };
-
-    app.UseStaticFiles(spaStaticFiles);
-    app.MapFallbackToFile("{*path:nonfile}", "index.html", spaStaticFiles);
+    app.UsePrecompressedSpaStaticFiles();
 }
 
 app.Run();
