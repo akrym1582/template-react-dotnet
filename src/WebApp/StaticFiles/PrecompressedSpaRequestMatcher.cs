@@ -12,6 +12,7 @@ public static class PrecompressedSpaRequestMatcher
     /// <returns>探索対象の場合は <see langword="true"/>。</returns>
     public static bool ShouldTryResolvePrecompressedAsset(HttpRequest request) =>
         (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method))
+        && request.Path.Value is not null
         && Path.HasExtension(request.Path.Value)
         && !IsApiRequest(request.Path);
 

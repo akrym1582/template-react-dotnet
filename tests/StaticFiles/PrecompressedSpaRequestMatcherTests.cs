@@ -18,6 +18,18 @@ public class PrecompressedSpaRequestMatcherTests
     }
 
     [Fact]
+    public void 静的ファイルへのHeadリクエストは探索対象にする()
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = HttpMethods.Head;
+        httpContext.Request.Path = "/assets/app.js";
+
+        var result = PrecompressedSpaRequestMatcher.ShouldTryResolvePrecompressedAsset(httpContext.Request);
+
+        Assert.True(result);
+    }
+
+    [Fact]
     public void Api配下の拡張子付きGetリクエストは探索対象にしない()
     {
         var httpContext = new DefaultHttpContext();
@@ -35,5 +47,29 @@ public class PrecompressedSpaRequestMatcherTests
         var result = PrecompressedSpaRequestMatcher.IsApiRequest("/api/users");
 
         Assert.True(result);
+    }
+
+    [Fact]
+    public void ApiルートそのものもApiリクエストとして判定する()
+    {
+        var result = PrecompressedSpaRequestMatcher.IsApiRequest("/api");
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void Apiパスは大文字小文字を区別せず判定する()
+    {
+        var result = PrecompressedSpaRequestMatcher.IsApiRequest("/API/users");
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void Api以外の近い名前のパスはApiリクエストとして判定しない()
+    {
+        var result = PrecompressedSpaRequestMatcher.IsApiRequest("/notapi/users");
+
+        Assert.False(result);
     }
 }
