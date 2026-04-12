@@ -98,8 +98,8 @@ if (app.Environment.IsDevelopment())
 
 if (app.Environment.IsProduction())
 {
-    app.UseHttpsRedirection();
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
 app.UseStaticFiles();
