@@ -27,7 +27,9 @@ public class XsrfTokenCookieService : IXsrfTokenCookieService
     {
         var tokens = _antiforgery.GetAndStoreTokens(httpContext);
         if (string.IsNullOrEmpty(tokens.RequestToken))
+        {
             return;
+        }
 
         httpContext.Response.Cookies.Append(
             Constants.XsrfTokenCookieName,
@@ -51,7 +53,7 @@ public class XsrfTokenCookieService : IXsrfTokenCookieService
             IsEssential = true,
             SameSite = SameSiteMode.Lax,
             Secure = httpContext.Request.IsHttps,
-            Expires = DateTimeOffset.UtcNow.Add(CookieLifetime)
+            Expires = DateTimeOffset.UtcNow.Add(CookieLifetime),
         };
 
     private static CookieOptions CreateDeleteCookieOptions(HttpContext httpContext) =>
@@ -59,6 +61,6 @@ public class XsrfTokenCookieService : IXsrfTokenCookieService
         {
             Path = "/",
             SameSite = SameSiteMode.Lax,
-            Secure = httpContext.Request.IsHttps
+            Secure = httpContext.Request.IsHttps,
         };
 }

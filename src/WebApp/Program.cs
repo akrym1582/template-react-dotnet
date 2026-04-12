@@ -64,7 +64,7 @@ builder.Services
     .AddJwtBearer("EntraID", options =>
     {
         var tenantId = builder.Configuration["AzureAd:TenantId"] ?? "common";
-        var clientId = builder.Configuration["AzureAd:ClientId"] ?? "";
+        var clientId = builder.Configuration["AzureAd:ClientId"] ?? string.Empty;
         options.Authority = $"https://login.microsoftonline.com/{tenantId}/v2.0";
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -108,7 +108,7 @@ if (!app.Environment.IsDevelopment())
 {
     var spaStaticFiles = new StaticFileOptions
     {
-        FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "clientapp", "dist"))
+        FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "clientapp", "dist")),
     };
 
     app.UseStaticFiles(spaStaticFiles);
