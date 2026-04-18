@@ -1,3 +1,4 @@
+using Shared.Dto;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Sse;
 
@@ -14,9 +15,10 @@ public class SampleController : ControllerBase
     /// 仮の長時間タスク進捗を SSE で返却する。
     /// </summary>
     /// <param name="cancellationToken">キャンセルトークン。</param>
-    /// <returns>非同期処理を表すタスク。</returns>
+    /// <returns>SSE レスポンスを書き込んだ後の空の結果。</returns>
     [HttpGet("progress")]
-    public Task Progress(CancellationToken cancellationToken)
+    [Produces("text/event-stream")]
+    public async Task<EmptyResult> Progress(CancellationToken cancellationToken)
     {
         var context = new SampleTaskContext
         {
@@ -24,7 +26,7 @@ public class SampleController : ControllerBase
             CurrentStep = 0,
         };
 
-        return SseUtility.StreamTaskProgressAsync(
+        await SseUtility.StreamTaskProgressAsync(
             Response,
             context,
             taskBody: async (taskContext, report, token) =>
@@ -38,23 +40,21 @@ public class SampleController : ControllerBase
 
                     await report(
                         "progress",
-                        new
-                        {
+                        new SampleTaskProgressDto(
                             step,
-                            totalSteps = taskContext.TotalSteps,
-                            percent = step * 100 / taskContext.TotalSteps,
-                            message = $"{step}/{taskContext.TotalSteps} を処理中です。",
-                        });
+                            taskContext.TotalSteps,
+                            step * 100 / taskContext.TotalSteps,
+                            $"{step}/{taskContext.TotalSteps} を処理中です。"));
                 }
             },
-            completedPayloadFactory: taskContext => new
-            {
-                status = "completed",
-                totalSteps = taskContext.TotalSteps,
-                processedSteps = taskContext.CurrentStep,
-                timestamp = DateTimeOffset.UtcNow,
-            },
+            completedPayloadFactory: taskContext => new SampleTaskCompletedDto(
+                "completed",
+                taskContext.TotalSteps,
+                taskContext.CurrentStep,
+                DateTimeOffset.UtcNow),
             heartbeatInterval: TimeSpan.FromSeconds(5),
             cancellationToken: cancellationToken);
+
+        return new EmptyResult();
     }
 }

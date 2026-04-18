@@ -99,10 +99,11 @@ public class SseUtilityTests
             },
         };
 
-        await controller.Progress(cancellationTokenSource.Token);
+        var result = await controller.Progress(cancellationTokenSource.Token);
 
         var payload = ReadResponseBody(httpContext.Response);
 
+        Assert.IsType<EmptyResult>(result);
         Assert.Equal("text/event-stream; charset=utf-8", httpContext.Response.ContentType);
         Assert.Contains("event: started\n", payload, StringComparison.Ordinal);
         Assert.Contains("event: progress\n", payload, StringComparison.Ordinal);
