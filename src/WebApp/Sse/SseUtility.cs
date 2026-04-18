@@ -115,7 +115,7 @@ public static class SseUtility
 
         yield return new SseItem<object>(CreateStartedPayload(), "started");
 
-        await using var eventEnumerator = channel.Reader.ReadAllAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
+        await using var eventEnumerator = channel.Reader.ReadAllAsync(cancellationToken).GetAsyncEnumerator();
         while (true)
         {
             bool hasNext;

@@ -9,6 +9,11 @@ namespace Tests.Sse;
 
 public class SseUtilityTests
 {
+    private static readonly IServiceProvider TestRequestServices = new ServiceCollection()
+        .AddLogging()
+        .AddOptions()
+        .BuildServiceProvider();
+
     [Fact]
     public async Task StreamTaskProgressAsync_正常終了時は開始進捗完了イベントを返す()
     {
@@ -115,10 +120,7 @@ public class SseUtilityTests
     {
         var httpContext = new DefaultHttpContext();
         httpContext.Response.Body = new MemoryStream();
-        httpContext.RequestServices = new ServiceCollection()
-            .AddLogging()
-            .AddOptions()
-            .BuildServiceProvider();
+        httpContext.RequestServices = TestRequestServices;
         return httpContext;
     }
 
