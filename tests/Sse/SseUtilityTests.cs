@@ -85,7 +85,7 @@ public class SseUtilityTests
     }
 
     [Fact]
-    public async Task SampleController_ProgressはSseレスポンスを返す()
+    public async Task StreamTaskProgressAsync_SampleControllerで使用時にSseレスポンスを返す()
     {
         var httpContext = CreateHttpContext();
         using var cancellationTokenSource = new CancellationTokenSource();

@@ -112,15 +112,20 @@ public static class SseUtility
 
         async Task WriteEventAsync(string eventName, object payload, CancellationToken writeCancellationToken)
         {
-            await writeLock.WaitAsync(writeCancellationToken);
+            var lockTaken = false;
 
             try
             {
+                await writeLock.WaitAsync(writeCancellationToken);
+                lockTaken = true;
                 await SseWriter.WriteEventAsync(response, eventName, payload, writeCancellationToken);
             }
             finally
             {
-                writeLock.Release();
+                if (lockTaken)
+                {
+                    writeLock.Release();
+                }
             }
         }
 
@@ -128,17 +133,21 @@ public static class SseUtility
         {
             while (!heartbeatCancellationToken.IsCancellationRequested)
             {
-                await Task.Delay(interval, heartbeatCancellationToken);
-
-                await writeLock.WaitAsync(heartbeatCancellationToken);
+                var lockTaken = false;
 
                 try
                 {
+                    await Task.Delay(interval, heartbeatCancellationToken);
+                    await writeLock.WaitAsync(heartbeatCancellationToken);
+                    lockTaken = true;
                     await SseWriter.WriteCommentAsync(response, "heartbeat", heartbeatCancellationToken);
                 }
                 finally
                 {
-                    writeLock.Release();
+                    if (lockTaken)
+                    {
+                        writeLock.Release();
+                    }
                 }
             }
         }
