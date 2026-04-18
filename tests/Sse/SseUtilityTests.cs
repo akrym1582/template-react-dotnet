@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using WebApp.Controllers;
 using WebApp.Sse;
 
@@ -8,6 +9,11 @@ namespace Tests.Sse;
 
 public class SseUtilityTests
 {
+    private static readonly IServiceProvider TestRequestServices = new ServiceCollection()
+        .AddLogging()
+        .AddOptions()
+        .BuildServiceProvider();
+
     [Fact]
     public async Task StreamTaskProgressAsync_正常終了時は開始進捗完了イベントを返す()
     {
@@ -18,8 +24,7 @@ public class SseUtilityTests
         };
         var httpContext = CreateHttpContext();
 
-        await SseUtility.StreamTaskProgressAsync(
-            httpContext.Response,
+        var result = SseUtility.StreamTaskProgress(
             context,
             async (taskContext, report, _) =>
             {
@@ -33,13 +38,13 @@ public class SseUtilityTests
                 status = "completed",
                 processedSteps = taskContext.CurrentStep,
             });
+        await result.ExecuteAsync(httpContext);
 
         var payload = ReadResponseBody(httpContext.Response);
 
         Assert.Equal(StatusCodes.Status200OK, httpContext.Response.StatusCode);
-        Assert.Equal("text/event-stream; charset=utf-8", httpContext.Response.ContentType);
-        Assert.Equal("no-cache", httpContext.Response.Headers["Cache-Control"].ToString());
-        Assert.Equal("no", httpContext.Response.Headers["X-Accel-Buffering"].ToString());
+        Assert.Equal("text/event-stream", httpContext.Response.ContentType);
+        Assert.Contains("no-cache", httpContext.Response.Headers["Cache-Control"].ToString(), StringComparison.Ordinal);
         Assert.True(payload.IndexOf("event: started\n", StringComparison.Ordinal) >= 0);
         Assert.True(payload.IndexOf("event: progress\n", StringComparison.Ordinal) > payload.IndexOf("event: started\n", StringComparison.Ordinal));
         Assert.True(payload.IndexOf("event: completed\n", StringComparison.Ordinal) > payload.IndexOf("event: progress\n", StringComparison.Ordinal));
@@ -53,15 +58,15 @@ public class SseUtilityTests
     {
         var httpContext = CreateHttpContext();
 
-        await SseUtility.StreamTaskProgressAsync(
-            httpContext.Response,
+        var result = SseUtility.StreamTaskProgress(
             new object(),
             async (_, _, cancellationToken) => await Task.Delay(TimeSpan.FromMilliseconds(70), cancellationToken),
             heartbeatInterval: TimeSpan.FromMilliseconds(20));
+        await result.ExecuteAsync(httpContext);
 
         var payload = ReadResponseBody(httpContext.Response);
 
-        Assert.Contains(": heartbeat\n\n", payload, StringComparison.Ordinal);
+        Assert.Contains("event: heartbeat\n", payload, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -70,10 +75,12 @@ public class SseUtilityTests
         var httpContext = CreateHttpContext();
 
         var exception = await Record.ExceptionAsync(async () =>
-            await SseUtility.StreamTaskProgressAsync(
-                httpContext.Response,
+        {
+            var result = SseUtility.StreamTaskProgress(
                 new object(),
-                (_, _, _) => throw new InvalidOperationException("boom")));
+                (_, _, _) => throw new InvalidOperationException("boom"));
+            await result.ExecuteAsync(httpContext);
+        });
 
         var payload = ReadResponseBody(httpContext.Response);
 
@@ -99,11 +106,12 @@ public class SseUtilityTests
             },
         };
 
-        await controller.Progress(cancellationTokenSource.Token);
+        var result = controller.Progress(cancellationTokenSource.Token);
+        await result.ExecuteAsync(httpContext);
 
         var payload = ReadResponseBody(httpContext.Response);
 
-        Assert.Equal("text/event-stream; charset=utf-8", httpContext.Response.ContentType);
+        Assert.Equal("text/event-stream", httpContext.Response.ContentType);
         Assert.Contains("event: started\n", payload, StringComparison.Ordinal);
         Assert.Contains("event: progress\n", payload, StringComparison.Ordinal);
     }
@@ -112,6 +120,7 @@ public class SseUtilityTests
     {
         var httpContext = new DefaultHttpContext();
         httpContext.Response.Body = new MemoryStream();
+        httpContext.RequestServices = TestRequestServices;
         return httpContext;
     }
 
