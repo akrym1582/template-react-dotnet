@@ -1,5 +1,5 @@
-using Shared.Dto;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Dto;
 using WebApp.Sse;
 
 namespace WebApp.Controllers;
