@@ -18,8 +18,7 @@ public class SseUtilityTests
         };
         var httpContext = CreateHttpContext();
 
-        await SseUtility.StreamTaskProgressAsync(
-            httpContext.Response,
+        var result = SseUtility.StreamTaskProgress(
             context,
             async (taskContext, report, _) =>
             {
@@ -33,6 +32,7 @@ public class SseUtilityTests
                 status = "completed",
                 processedSteps = taskContext.CurrentStep,
             });
+        await result.ExecuteAsync(httpContext);
 
         var payload = ReadResponseBody(httpContext.Response);
 
@@ -53,15 +53,15 @@ public class SseUtilityTests
     {
         var httpContext = CreateHttpContext();
 
-        await SseUtility.StreamTaskProgressAsync(
-            httpContext.Response,
+        var result = SseUtility.StreamTaskProgress(
             new object(),
             async (_, _, cancellationToken) => await Task.Delay(TimeSpan.FromMilliseconds(70), cancellationToken),
             heartbeatInterval: TimeSpan.FromMilliseconds(20));
+        await result.ExecuteAsync(httpContext);
 
         var payload = ReadResponseBody(httpContext.Response);
 
-        Assert.Contains(": heartbeat\n\n", payload, StringComparison.Ordinal);
+        Assert.Contains("event: heartbeat\n", payload, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -70,10 +70,12 @@ public class SseUtilityTests
         var httpContext = CreateHttpContext();
 
         var exception = await Record.ExceptionAsync(async () =>
-            await SseUtility.StreamTaskProgressAsync(
-                httpContext.Response,
+        {
+            var result = SseUtility.StreamTaskProgress(
                 new object(),
-                (_, _, _) => throw new InvalidOperationException("boom")));
+                (_, _, _) => throw new InvalidOperationException("boom"));
+            await result.ExecuteAsync(httpContext);
+        });
 
         var payload = ReadResponseBody(httpContext.Response);
 
@@ -99,7 +101,8 @@ public class SseUtilityTests
             },
         };
 
-        await controller.Progress(cancellationTokenSource.Token);
+        var result = controller.Progress(cancellationTokenSource.Token);
+        await result.ExecuteAsync(httpContext);
 
         var payload = ReadResponseBody(httpContext.Response);
 

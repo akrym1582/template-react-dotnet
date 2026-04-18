@@ -14,9 +14,9 @@ public class SampleController : ControllerBase
     /// 仮の長時間タスク進捗を SSE で返却する。
     /// </summary>
     /// <param name="cancellationToken">キャンセルトークン。</param>
-    /// <returns>非同期処理を表すタスク。</returns>
+    /// <returns>SSE レスポンスを返す結果。</returns>
     [HttpGet("progress")]
-    public Task Progress(CancellationToken cancellationToken)
+    public IResult Progress(CancellationToken cancellationToken)
     {
         var context = new SampleTaskContext
         {
@@ -24,8 +24,7 @@ public class SampleController : ControllerBase
             CurrentStep = 0,
         };
 
-        return SseUtility.StreamTaskProgressAsync(
-            Response,
+        return SseUtility.StreamTaskProgress(
             context,
             taskBody: async (taskContext, report, token) =>
             {
