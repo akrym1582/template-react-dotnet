@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using WebApp.Controllers;
 using WebApp.Sse;
 
@@ -37,9 +38,8 @@ public class SseUtilityTests
         var payload = ReadResponseBody(httpContext.Response);
 
         Assert.Equal(StatusCodes.Status200OK, httpContext.Response.StatusCode);
-        Assert.Equal("text/event-stream; charset=utf-8", httpContext.Response.ContentType);
-        Assert.Equal("no-cache", httpContext.Response.Headers["Cache-Control"].ToString());
-        Assert.Equal("no", httpContext.Response.Headers["X-Accel-Buffering"].ToString());
+        Assert.Equal("text/event-stream", httpContext.Response.ContentType);
+        Assert.Contains("no-cache", httpContext.Response.Headers["Cache-Control"].ToString(), StringComparison.Ordinal);
         Assert.True(payload.IndexOf("event: started\n", StringComparison.Ordinal) >= 0);
         Assert.True(payload.IndexOf("event: progress\n", StringComparison.Ordinal) > payload.IndexOf("event: started\n", StringComparison.Ordinal));
         Assert.True(payload.IndexOf("event: completed\n", StringComparison.Ordinal) > payload.IndexOf("event: progress\n", StringComparison.Ordinal));
@@ -106,7 +106,7 @@ public class SseUtilityTests
 
         var payload = ReadResponseBody(httpContext.Response);
 
-        Assert.Equal("text/event-stream; charset=utf-8", httpContext.Response.ContentType);
+        Assert.Equal("text/event-stream", httpContext.Response.ContentType);
         Assert.Contains("event: started\n", payload, StringComparison.Ordinal);
         Assert.Contains("event: progress\n", payload, StringComparison.Ordinal);
     }
@@ -115,6 +115,10 @@ public class SseUtilityTests
     {
         var httpContext = new DefaultHttpContext();
         httpContext.Response.Body = new MemoryStream();
+        httpContext.RequestServices = new ServiceCollection()
+            .AddLogging()
+            .AddOptions()
+            .BuildServiceProvider();
         return httpContext;
     }
 

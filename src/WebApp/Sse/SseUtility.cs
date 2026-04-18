@@ -115,12 +115,34 @@ public static class SseUtility
 
         yield return new SseItem<object>(CreateStartedPayload(), "started");
 
-        await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
+        await using var eventEnumerator = channel.Reader.ReadAllAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
+        while (true)
         {
-            yield return item;
+            bool hasNext;
+            try
+            {
+                hasNext = await eventEnumerator.MoveNextAsync();
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+
+            if (!hasNext)
+            {
+                break;
+            }
+
+            yield return eventEnumerator.Current;
         }
 
-        await producerTask;
+        try
+        {
+            await producerTask;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
 
         async Task ReportAsync(string eventName, object payload)
         {
